@@ -63,8 +63,8 @@ async function main() {
         `INSERT INTO profile
           (site_id, name, title_id, title_en, headline_id, headline_en,
            summary_id, summary_en, location_id, location_en, cv_url_id, cv_url_en,
-           email, phone)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+           email, phone, badge_show, badge_text_id, badge_text_en)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           siteId,
           'Ahmad Kubagus Subkhi',
@@ -80,6 +80,9 @@ async function main() {
           'https://drive.google.com/cv-en.pdf',
           'halo@kubagus.com',
           '+62 812 3456 7890',
+          1,
+          null,
+          null,
         ],
       );
       console.log('Profil default dibuat.');

@@ -19,6 +19,8 @@ export interface Profile {
   email: string | null;
   phone: string | null;
   available_for_hire: number;
+  badge_show: number;
+  badge_text: string | null;
   socials: SocialLink[];
 }
 

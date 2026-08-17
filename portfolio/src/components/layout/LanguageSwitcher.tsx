@@ -14,7 +14,7 @@ export function LanguageSwitcher() {
       aria-label="Ganti bahasa"
     >
       <Languages className="size-4" />
-      {lang === "id" ? "EN" : "ID"}
+      {lang === "id" ? "ID" : "EN"}
     </Button>
   );
 }

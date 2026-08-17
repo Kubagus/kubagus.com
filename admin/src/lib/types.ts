@@ -42,6 +42,9 @@ export interface AdminProfile {
   email: string | null;
   phone: string | null;
   available_for_hire: number;
+  badge_show: number;
+  badge_text_id: string | null;
+  badge_text_en: string | null;
 }
 
 export interface AdminSocial {

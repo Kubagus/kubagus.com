@@ -92,7 +92,11 @@
     "sending": "Sending...",
     "success": "Message sent! Thanks for reaching out.",
     "error": "Failed to send the message. Please try again.",
-    "invalid": "Please fill in name, email, and message correctly."
+    "invalid": "Please fill in name, email, and message correctly.",
+    "confirmTitle": "Send message?",
+    "confirmDesc": "Review your message before sending.",
+    "confirm": "Yes, Send",
+    "cancel": "Cancel"
   },
   "notFound": {
     "title": "404",

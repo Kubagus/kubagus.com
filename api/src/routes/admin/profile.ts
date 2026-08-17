@@ -25,6 +25,9 @@ interface ProfileRow extends mysql.RowDataPacket {
   email: string | null;
   phone: string | null;
   available_for_hire: number;
+  badge_show: number;
+  badge_text_id: string | null;
+  badge_text_en: string | null;
 }
 
 interface SocialRow extends mysql.RowDataPacket {
@@ -52,6 +55,9 @@ const profileSchema = z.object({
   email: z.string().email().max(255).nullable().optional(),
   phone: z.string().max(50).nullable().optional(),
   available_for_hire: z.boolean().optional(),
+  badge_show: z.boolean().optional(),
+  badge_text_id: z.string().max(150).nullable().optional(),
+  badge_text_en: z.string().max(150).nullable().optional(),
 });
 
 adminProfileRouter.get(
@@ -65,6 +71,10 @@ adminProfileRouter.get(
     res.json({ profile: rows[0] ?? null, socials });
   }),
 );
+
+function norm(v: string | null | undefined): string | null {
+  return v === null || v === undefined || v.trim() === '' ? null : v;
+}
 
 adminProfileRouter.put(
   '/',
@@ -80,23 +90,27 @@ adminProfileRouter.put(
       'name', 'title_id', 'title_en', 'headline_id', 'headline_en',
       'summary_id', 'summary_en', 'profile_picture', 'location_id', 'location_en',
       'cv_url_id', 'cv_url_en', 'email', 'phone', 'available_for_hire',
+      'badge_show', 'badge_text_id', 'badge_text_en',
     ];
     const values = [
       body.name,
-      body.title_id ?? null,
-      body.title_en ?? null,
-      body.headline_id ?? null,
-      body.headline_en ?? null,
-      body.summary_id ?? null,
-      body.summary_en ?? null,
-      body.profile_picture ?? null,
-      body.location_id ?? null,
-      body.location_en ?? null,
-      body.cv_url_id ?? null,
-      body.cv_url_en ?? null,
-      body.email ?? null,
-      body.phone ?? null,
+      norm(body.title_id),
+      norm(body.title_en),
+      norm(body.headline_id),
+      norm(body.headline_en),
+      norm(body.summary_id),
+      norm(body.summary_en),
+      norm(body.profile_picture),
+      norm(body.location_id),
+      norm(body.location_en),
+      norm(body.cv_url_id),
+      norm(body.cv_url_en),
+      norm(body.email),
+      norm(body.phone),
       body.available_for_hire === undefined ? 1 : body.available_for_hire ? 1 : 0,
+      body.badge_show === undefined ? 1 : body.badge_show ? 1 : 0,
+      norm(body.badge_text_id),
+      norm(body.badge_text_en),
     ];
 
     if (existing[0]) {

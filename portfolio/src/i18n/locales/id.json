@@ -92,7 +92,11 @@
     "sending": "Mengirim...",
     "success": "Pesan terkirim! Terima kasih sudah menghubungi.",
     "error": "Gagal mengirim pesan. Coba lagi.",
-    "invalid": "Mohon isi nama, email, dan pesan dengan benar."
+    "invalid": "Mohon isi nama, email, dan pesan dengan benar.",
+    "confirmTitle": "Kirim pesan?",
+    "confirmDesc": "Periksa kembali isi pesan sebelum dikirim.",
+    "confirm": "Ya, Kirim",
+    "cancel": "Batal"
   },
   "notFound": {
     "title": "404",

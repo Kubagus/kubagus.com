@@ -122,6 +122,22 @@
 - [x] **Pagination prev/next**: detail blog & project menampilkan nav Sebelumnya/Berikutnya (komponen `AdjacentNav`, dari API `prev`/`next` sesuai urutan daftar publik)
 - [x] Build OK, lint OK, teruji: GET 2× views tetap, POST view +1, prev/next benar di kedua tipe
 
+## Filter dropdown, fix social, badge custom
+- [x] **Filter dropdown**: halaman Projects (dropdown Kategori + dropdown Teknologi) & Blog (dropdown Kategori) pakai shadcn Select; komponen FilterPills dihapus
+- [x] **Bug admin social links**: "Expected boolean, received number" — `is_active` dari API berupa 0/1 (TINYINT) dikirim ulang ke PUT tanpa konversi. Fix: normalisasi `is_active: !!current.is_active` saat update + Switch mengirim boolean
+- [x] **Badge kustom**: migration 003 → `profile.badge_show` + `badge_text_id/en`; API publik mengembalikan `badge_show` + `badge_text` (per bahasa); admin bisa atur tampil/sembunyi (independen dari status available_for_hire) + teks custom per bahasa; hero menampilkan teks kustom atau fallback i18n, hanya jika `badge_show=1`
+- [x] Build semua OK, teruji: social create/update boolean OK, badge show=0/text custom → publik OK
+
+## Perbaikan bug: tombol CV hilang & input social me-refresh
+- [x] **Tombol CV hilang saat badge ditampilkan**: penyebab — `cv_url` di DB menjadi string kosong `""`/salah karena saat admin menyimpan profil, field kosong ditulis apa adanya (bukan NULL) → `cv_url` falsy → tombol CV tidak dirender. Fix: API `PUT /admin/profile` kini **menormalkan string kosong → NULL** (`norm()` untuk semua field teks); data CV di DB dipulihkan ke placeholder (`https://drive.google.com/cv-id.pdf` / `cv-en.pdf`) — ganti dengan link asli di panel admin
+- [x] **Input link media sosial me-refresh**: penyebab — PUT dikirim **setiap ketikan** + `refetch()` yang me-reset state → seolah halaman refresh. Fix: input social kini **edit lokal** (state) & **simpan saat blur** (`onBlur`) / toggle aktif langsung simpan; tidak ada PUT per karakter
+- [x] Teruji: PUT empty → `cv_url` null (tombol CV benar-benar tersembunyi), PUT full → CV muncul di id & en, `badge_show` tetap 1
+
+## Konfirmasi contact & rate limit login
+- [x] **Konfirmasi kirim pesan**: tombol Kirim → dialog ringkasan (nama, email, subjek, pesan) → "Ya, Kirim"/"Batal" (i18n id/en)
+- [x] **Rate limit login**: `src/services/loginAttempts.ts` (in-memory per email+IP) — 5× gagal → terkunci 3 menit (429), pesan sisa percobaan (401) di tiap kegagalan, password benar pun tetap diblokir saat terkunci; berhasil login → counter direset; `trust proxy loopback` agar IP benar saat di belakang nginx
+- [x] Teruji: 1-4 gagal 401 sisa percobaan, ke-5 & ke-6 → 429 "Coba lagi dalam 3 menit", email lain tidak terpengaruh
+
 ## Tersisa (opsional / kapan-kapan)
 - [ ] HTTPS (certbot) + `COOKIE_SECURE=true`, `CORS_ORIGIN` daftar origin di produksi
 - [ ] Deploy nginx per konfigurasi di `plan/MULTI-SITE.md`

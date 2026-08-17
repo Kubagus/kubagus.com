@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { FolderTree } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useApi } from "@/lib/hooks";
 import { apiGet, blogsPath } from "@/lib/api";
@@ -7,7 +9,6 @@ import { useSeo } from "@/lib/seo";
 import type { BlogPost } from "@/lib/types";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { BlogCard } from "@/components/content/BlogCard";
-import { FilterPills } from "@/components/content/FilterPills";
 
 export function BlogPage() {
   const { t } = useTranslation();
@@ -18,7 +19,7 @@ export function BlogPage() {
     [lang],
   );
 
-  const [catId, setCatId] = useState<number | "all">("all");
+  const [catId, setCatId] = useState<string>("all");
 
   const categories = useMemo(() => {
     const map = new Map<number, string>();
@@ -30,7 +31,7 @@ export function BlogPage() {
 
   const filtered = useMemo(() => {
     if (catId === "all") return posts ?? [];
-    return (posts ?? []).filter((p) => p.categories.some((c) => c.id === catId));
+    return (posts ?? []).filter((p) => p.categories.some((c) => c.id === Number(catId)));
   }, [posts, catId]);
 
   return (
@@ -41,12 +42,20 @@ export function BlogPage() {
       </header>
 
       <div className="mb-8">
-        <FilterPills
-          options={categories}
-          selected={catId}
-          onChange={setCatId}
-          allLabel={t("home.filterAll")}
-        />
+        <Select value={catId} onValueChange={setCatId}>
+          <SelectTrigger className="w-full sm:w-56">
+            <FolderTree className="mr-2 size-4 shrink-0 text-muted-foreground" />
+            <SelectValue placeholder={t("home.filterAll")} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t("home.filterAll")}</SelectItem>
+            {categories.map((cat) => (
+              <SelectItem key={cat.id} value={String(cat.id)}>
+                {cat.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {loading ? (

@@ -18,6 +18,9 @@ function resolveCorsOrigin(): cors.CorsOptions['origin'] {
 export function createApp() {
   const app = express();
 
+  // Percaya X-Forwarded-For hanya dari proxy loopback (nginx di host yang sama).
+  app.set('trust proxy', 'loopback');
+
   app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
   app.use(
     cors({

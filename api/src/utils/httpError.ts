@@ -23,3 +23,7 @@ export function unauthorized(message = 'Unauthorized') {
 export function forbidden(message = 'Forbidden') {
   return new AppError(message, 403);
 }
+
+export function tooManyRequests(message = 'Terlalu banyak percobaan. Coba lagi nanti.') {
+  return new AppError(message, 429);
+}

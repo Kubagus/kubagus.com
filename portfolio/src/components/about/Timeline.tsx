@@ -16,11 +16,20 @@ interface TimelineItem {
   is_current: number;
 }
 
+function parseDate(value: string | null): Date | null {
+  if (!value) return null;
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
 function formatPeriod(start: string, end: string | null, isCurrent: number, lang: string, present: string) {
   const opts: Intl.DateTimeFormatOptions = { month: "short", year: "numeric" };
   const locale = lang === "id" ? "id-ID" : "en-US";
-  const startLabel = new Date(start + "T00:00:00").toLocaleDateString(locale, opts);
-  const endLabel = isCurrent ? present : end ? new Date(end + "T00:00:00").toLocaleDateString(locale, opts) : "—";
+  const startDate = parseDate(start);
+  if (!startDate) return "";
+  const startLabel = startDate.toLocaleDateString(locale, opts);
+  const endDate = parseDate(end);
+  const endLabel = isCurrent ? present : endDate ? endDate.toLocaleDateString(locale, opts) : "—";
   return `${startLabel} — ${endLabel}`;
 }
 

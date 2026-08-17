@@ -21,6 +21,8 @@ interface ProfileRow extends mysql.RowDataPacket {
   email: string | null;
   phone: string | null;
   available_for_hire: number;
+  badge_show: number;
+  badge_text: string | null;
 }
 
 interface SocialRow extends mysql.RowDataPacket {
@@ -36,8 +38,8 @@ publicRouter.get(
   asyncHandler(async (req, res) => {
     const lang = pickLang(req.params.lang);
     const rows = await query<ProfileRow>(
-      `SELECT name, ${langCols(lang, ['title', 'headline', 'summary', 'location', 'cv_url'])},
-        profile_picture, email, phone, available_for_hire
+      `SELECT name, ${langCols(lang, ['title', 'headline', 'summary', 'location', 'cv_url', 'badge_text'])},
+        profile_picture, email, phone, available_for_hire, badge_show
        FROM profile WHERE site_id = ?`,
       [req.siteId],
     );

@@ -2,6 +2,14 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CheckCircle2, Loader2, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,17 +27,24 @@ export function ContactPage() {
 
   const [form, setForm] = useState<ContactFormData>({ name: "", email: "", subject: "", message: "" });
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   function update<K extends keyof ContactFormData>(key: K, value: string) {
     setForm((f) => ({ ...f, [key]: value }));
   }
 
-  async function onSubmit(e: React.FormEvent) {
+  function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.name.trim() || !form.email.trim() || !form.message.trim()) {
       setStatus("error");
       return;
     }
+    setStatus("idle");
+    setConfirmOpen(true);
+  }
+
+  async function confirmSend() {
+    setConfirmOpen(false);
     setStatus("sending");
     try {
       await contactSubmit(form);
@@ -116,6 +131,43 @@ export function ContactPage() {
           )}
         </Button>
       </form>
+
+      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("contact.confirmTitle")}</DialogTitle>
+            <DialogDescription>{t("contact.confirmDesc")}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 rounded-lg border border-border bg-muted/50 p-4 text-sm">
+            <p>
+              <span className="font-medium">{t("contact.name")}: </span>
+              {form.name}
+            </p>
+            <p>
+              <span className="font-medium">{t("contact.email")}: </span>
+              {form.email}
+            </p>
+            {form.subject && (
+              <p>
+                <span className="font-medium">{t("contact.subject")}: </span>
+                {form.subject}
+              </p>
+            )}
+            <p className="whitespace-pre-wrap">
+              <span className="font-medium">{t("contact.message")}: </span>
+              {form.message}
+            </p>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setConfirmOpen(false)}>
+              {t("contact.cancel")}
+            </Button>
+            <Button onClick={confirmSend}>
+              <Send className="mr-1 size-4" /> {t("contact.confirm")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

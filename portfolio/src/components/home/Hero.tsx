@@ -60,9 +60,14 @@ export function Hero() {
                 </a>
               </Button>
             )}
-            <Badge variant={profile.available_for_hire ? "default" : "secondary"}>
-              {profile.available_for_hire ? t("common.availableForHire") : t("common.notAvailable")}
-            </Badge>
+            {!!profile.badge_show && (
+              <Badge variant={profile.available_for_hire ? "default" : "secondary"}>
+                {profile.badge_text ??
+                  (profile.available_for_hire
+                    ? t("common.availableForHire")
+                    : t("common.notAvailable"))}
+              </Badge>
+            )}
           </div>
         )}
       </div>

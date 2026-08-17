@@ -12,7 +12,7 @@ export function ThemeToggle() {
       onClick={toggleTheme}
       aria-label={theme === "dark" ? "Mode terang" : "Mode gelap"}
     >
-      {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
+      {theme === "dark" ? <Moon className="size-4" /> : <Sun className="size-4" />}
     </Button>
   );
 }

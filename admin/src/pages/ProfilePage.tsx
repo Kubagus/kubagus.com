@@ -29,6 +29,9 @@ interface ProfileState {
   email: string;
   phone: string;
   available_for_hire: boolean;
+  badge_show: boolean;
+  badge_text_id: string;
+  badge_text_en: string;
 }
 
 const emptyProfile: ProfileState = {
@@ -47,6 +50,9 @@ const emptyProfile: ProfileState = {
   email: "",
   phone: "",
   available_for_hire: true,
+  badge_show: true,
+  badge_text_id: "",
+  badge_text_en: "",
 };
 
 function mapProfile(p: AdminProfile | null): ProfileState {
@@ -67,6 +73,9 @@ function mapProfile(p: AdminProfile | null): ProfileState {
     email: p.email ?? "",
     phone: p.phone ?? "",
     available_for_hire: !!p.available_for_hire,
+    badge_show: !!p.badge_show,
+    badge_text_id: p.badge_text_id ?? "",
+    badge_text_en: p.badge_text_en ?? "",
   };
 }
 
@@ -118,11 +127,16 @@ export function ProfilePage() {
     }
   }
 
-  async function updateSocial(id: number, patch: Partial<AdminSocial>) {
-    const current = socials.find((s) => s.id === id);
-    if (!current) return;
+  function updateSocialLocal(id: number, patch: Partial<AdminSocial>) {
+    setSocials((prev) => prev.map((s) => (s.id === id ? { ...s, ...patch } : s)));
+  }
+
+  async function saveSocial(social: AdminSocial) {
     try {
-      await adminApi.put(`/admin/profile/socials/${id}`, { ...current, ...patch });
+      await adminApi.put(`/admin/profile/socials/${social.id}`, {
+        ...social,
+        is_active: !!social.is_active,
+      });
       refetch();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Gagal menyimpan");
@@ -188,6 +202,10 @@ export function ProfilePage() {
                 <Label>Link CV (bahasa Indonesia)</Label>
                 <Input value={form.cv_url_id} onChange={(e) => update("cv_url_id", e.target.value)} placeholder="https://drive.google.com/..." />
               </div>
+              <div className="space-y-2">
+                <Label>Teks badge (ID)</Label>
+                <Input value={form.badge_text_id} onChange={(e) => update("badge_text_id", e.target.value)} placeholder="Tersedia untuk proyek" />
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -216,6 +234,10 @@ export function ProfilePage() {
               <div className="space-y-2">
                 <Label>CV link (English)</Label>
                 <Input value={form.cv_url_en} onChange={(e) => update("cv_url_en", e.target.value)} placeholder="https://drive.google.com/..." />
+              </div>
+              <div className="space-y-2">
+                <Label>Badge text (EN)</Label>
+                <Input value={form.badge_text_en} onChange={(e) => update("badge_text_en", e.target.value)} placeholder="Available for projects" />
               </div>
             </CardContent>
           </Card>
@@ -246,11 +268,23 @@ export function ProfilePage() {
           <div className="flex items-center justify-between rounded-lg border border-border p-3">
             <div>
               <p className="text-sm font-medium">Tersedia untuk proyek</p>
-              <p className="text-xs text-muted-foreground">Menampilkan badge di beranda</p>
+              <p className="text-xs text-muted-foreground">Menentukan gaya badge (aktif/nonaktif)</p>
             </div>
             <Switch
               checked={form.available_for_hire}
               onCheckedChange={(v) => update("available_for_hire", v)}
+            />
+          </div>
+          <div className="flex items-center justify-between rounded-lg border border-border p-3">
+            <div>
+              <p className="text-sm font-medium">Tampilkan badge di beranda</p>
+              <p className="text-xs text-muted-foreground">
+                Jika dimatikan, badge tidak muncul di hero meski statusnya aktif
+              </p>
+            </div>
+            <Switch
+              checked={form.badge_show}
+              onCheckedChange={(v) => update("badge_show", v)}
             />
           </div>
         </CardContent>
@@ -271,25 +305,31 @@ export function ProfilePage() {
             <div key={social.id} className="flex flex-wrap items-center gap-2 rounded-lg border border-border p-3">
               <Input
                 value={social.platform}
-                onChange={(e) => updateSocial(social.id, { platform: e.target.value })}
+                onChange={(e) => updateSocialLocal(social.id, { platform: e.target.value })}
+                onBlur={() => saveSocial(social)}
                 placeholder="Platform (mis. GitHub)"
                 className="w-40"
               />
               <Input
                 value={social.icon ?? ""}
-                onChange={(e) => updateSocial(social.id, { icon: e.target.value })}
+                onChange={(e) => updateSocialLocal(social.id, { icon: e.target.value })}
+                onBlur={() => saveSocial(social)}
                 placeholder="ikon (mis. github)"
                 className="w-32"
               />
               <Input
                 value={social.url}
-                onChange={(e) => updateSocial(social.id, { url: e.target.value })}
+                onChange={(e) => updateSocialLocal(social.id, { url: e.target.value })}
+                onBlur={() => saveSocial(social)}
                 placeholder="https://..."
                 className="min-w-48 flex-1"
               />
               <Switch
                 checked={!!social.is_active}
-                onCheckedChange={(v) => updateSocial(social.id, { is_active: v ? 1 : 0 })}
+                onCheckedChange={(v) => {
+                  updateSocialLocal(social.id, { is_active: v ? 1 : 0 });
+                  saveSocial({ ...social, is_active: v ? 1 : 0 });
+                }}
                 aria-label="Aktif"
               />
               <Button

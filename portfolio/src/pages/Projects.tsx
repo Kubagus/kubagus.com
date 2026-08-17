@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { FolderTree, Layers } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useApi } from "@/lib/hooks";
 import { apiGet, projectsPath } from "@/lib/api";
@@ -7,7 +9,6 @@ import { useSeo } from "@/lib/seo";
 import type { Project } from "@/lib/types";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ProjectCard } from "@/components/content/ProjectCard";
-import { FilterPills } from "@/components/content/FilterPills";
 
 export function ProjectsPage() {
   const { t } = useTranslation();
@@ -18,8 +19,8 @@ export function ProjectsPage() {
     [lang],
   );
 
-  const [catId, setCatId] = useState<number | "all">("all");
-  const [techId, setTechId] = useState<number | "all">("all");
+  const [catId, setCatId] = useState<string>("all");
+  const [techId, setTechId] = useState<string>("all");
 
   const categories = useMemo(() => {
     const map = new Map<number, string>();
@@ -40,10 +41,10 @@ export function ProjectsPage() {
   const filtered = useMemo(() => {
     let list = [...(projects ?? [])].sort((a, b) => b.is_featured - a.is_featured);
     if (catId !== "all") {
-      list = list.filter((p) => p.categories.some((c) => c.id === catId));
+      list = list.filter((p) => p.categories.some((c) => c.id === Number(catId)));
     }
     if (techId !== "all") {
-      list = list.filter((p) => p.tech_stack.some((t) => t.id === techId));
+      list = list.filter((p) => p.tech_stack.some((t) => t.id === Number(techId)));
     }
     return list;
   }, [projects, catId, techId]);
@@ -55,19 +56,36 @@ export function ProjectsPage() {
         <p className="text-muted-foreground">{t("projects.subtitle")}</p>
       </header>
 
-      <div className="mb-8 space-y-3">
-        <FilterPills
-          options={categories}
-          selected={catId}
-          onChange={setCatId}
-          allLabel={t("home.filterAll")}
-        />
-        <FilterPills
-          options={techs}
-          selected={techId}
-          onChange={setTechId}
-          allLabel={t("home.filterAll")}
-        />
+      <div className="mb-8 flex flex-wrap items-center gap-3">
+        <Select value={catId} onValueChange={setCatId}>
+          <SelectTrigger className="w-full sm:w-56">
+            <FolderTree className="mr-2 size-4 shrink-0 text-muted-foreground" />
+            <SelectValue placeholder={t("home.filterAll")} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t("home.filterAll")}</SelectItem>
+            {categories.map((cat) => (
+              <SelectItem key={cat.id} value={String(cat.id)}>
+                {cat.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select value={techId} onValueChange={setTechId}>
+          <SelectTrigger className="w-full sm:w-56">
+            <Layers className="mr-2 size-4 shrink-0 text-muted-foreground" />
+            <SelectValue placeholder={t("home.filterAll")} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t("home.filterAll")}</SelectItem>
+            {techs.map((tech) => (
+              <SelectItem key={tech.id} value={String(tech.id)}>
+                {tech.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {loading ? (

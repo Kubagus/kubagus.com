@@ -7,7 +7,12 @@ import { query } from '../config/db.js';
 import { env } from '../config/env.js';
 import { requireAuth } from '../middleware/auth.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
-import { unauthorized } from '../utils/httpError.js';
+import { tooManyRequests, unauthorized } from '../utils/httpError.js';
+import {
+  checkLoginAttempts,
+  clearLoginAttempts,
+  recordLoginFailure,
+} from '../services/loginAttempts.js';
 
 export const authRouter = Router();
 
@@ -24,6 +29,11 @@ const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
 });
+
+function formatLockMessage(remainingMs: number): string {
+  const minutes = Math.ceil(remainingMs / 60000);
+  return `Terlalu banyak percobaan login. Coba lagi dalam ${minutes} menit.`;
+}
 
 function setAuthCookie(res: import('express').Response, token: string) {
   res.cookie(env.cookie.name, token, {
@@ -48,15 +58,34 @@ authRouter.post(
   '/login',
   asyncHandler(async (req, res) => {
     const body = loginSchema.parse(req.body);
+    const ip = req.ip ?? 'unknown';
 
+    // 1. Cek status lock sebelum verifikasi kredensial.
+    const check = checkLoginAttempts(body.email, ip);
+    if (check.locked) {
+      throw tooManyRequests(formatLockMessage(check.remainingMs));
+    }
+
+    // 2. Verifikasi kredensial.
     const rows = await query<AdminRow>(
       'SELECT id, site_id, name, email, password_hash, role FROM admins WHERE email = ?',
       [body.email],
     );
     const admin = rows[0];
-    if (!admin || !(await bcrypt.compare(body.password, admin.password_hash))) {
-      throw unauthorized('Email atau password salah.');
+    const valid = admin && (await bcrypt.compare(body.password, admin.password_hash));
+
+    if (!valid) {
+      const failed = recordLoginFailure(body.email, ip);
+      if (failed.locked) {
+        throw tooManyRequests(formatLockMessage(3 * 60 * 1000));
+      }
+      throw unauthorized(
+        `Email atau password salah. Sisa percobaan: ${failed.attemptsLeft}.`,
+      );
     }
+
+    // 3. Sukses — reset counter percobaan.
+    clearLoginAttempts(body.email, ip);
 
     const token = jwt.sign(
       { id: admin.id, siteId: admin.site_id, email: admin.email, role: admin.role },
