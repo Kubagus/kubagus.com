@@ -3,7 +3,7 @@ import { z } from 'zod';
 import type mysql from 'mysql2';
 import { query, execute } from '../config/db.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
-import { langCols, pickLang } from '../utils/lang.js';
+import { langCols, pickLang, type Lang } from '../utils/lang.js';
 import { badRequest, notFound } from '../utils/httpError.js';
 
 export const publicRouter = Router();
@@ -101,7 +101,7 @@ interface SkillRow extends mysql.RowDataPacket {
   name: string | null;
   category: string | null;
   icon: string | null;
-  proficiency: number;
+  level: string;
 }
 
 publicRouter.get(
@@ -109,7 +109,7 @@ publicRouter.get(
   asyncHandler(async (req, res) => {
     const lang = pickLang(req.params.lang);
     const rows = await query<SkillRow>(
-      `SELECT id, ${langCols(lang, ['name', 'category'])}, icon, proficiency
+      `SELECT id, ${langCols(lang, ['name', 'category'])}, icon, level
        FROM skills WHERE site_id = ? AND is_active = 1 ORDER BY sort_order ASC`,
       [req.siteId],
     );
@@ -126,27 +126,26 @@ interface ProjectRow extends mysql.RowDataPacket {
   summary: string | null;
   content: string | null;
   cover_image: string | null;
-  tech_stack: string | null;
   github_url: string | null;
   demo_url: string | null;
   is_featured: number;
   published_at: Date | null;
 }
 
-function parseJson(value: unknown): unknown[] {
-  if (value == null) return [];
-  if (typeof value === 'string') {
-    try {
-      return JSON.parse(value);
-    } catch {
-      return [];
-    }
-  }
-  return value as unknown[];
+interface RelRow extends mysql.RowDataPacket {
+  rel_id: number;
+  id: number;
+  name: string;
 }
 
-function parseProject(row: ProjectRow) {
-  return { ...row, tech_stack: parseJson(row.tech_stack) };
+function groupRels(rows: RelRow[]): Map<number, { id: number; name: string }[]> {
+  const map = new Map<number, { id: number; name: string }[]>();
+  for (const row of rows) {
+    const list = map.get(row.rel_id) ?? [];
+    list.push({ id: row.id, name: row.name });
+    map.set(row.rel_id, list);
+  }
+  return map;
 }
 
 publicRouter.get(
@@ -158,14 +157,44 @@ publicRouter.get(
 
     const rows = await query<ProjectRow>(
       `SELECT id, slug, ${langCols(lang, ['title', 'summary'])}, cover_image,
-        tech_stack, github_url, demo_url, is_featured, published_at
+        github_url, demo_url, is_featured, published_at
        FROM projects
        WHERE site_id = ? AND is_published = 1
        ORDER BY sort_order ASC, published_at DESC
        LIMIT ? OFFSET ?`,
       [req.siteId, limit, offset],
     );
-    res.json(rows.map(parseProject));
+    const ids = rows.map((r) => r.id);
+    const nameExpr = lang === 'id' ? 'COALESCE(c.name_id, c.name_en)' : 'COALESCE(c.name_en, c.name_id)';
+    const techRows = ids.length > 0
+      ? await query<RelRow>(
+          `SELECT pts.project_id AS rel_id, t.id, t.name
+           FROM project_tech_stacks pts
+           JOIN tech_stacks t ON t.id = pts.tech_stack_id
+           WHERE pts.project_id IN (${ids.map(() => '?').join(',')})
+           ORDER BY t.sort_order ASC, t.name ASC`,
+          ids,
+        )
+      : [];
+    const catRows = ids.length > 0
+      ? await query<RelRow>(
+          `SELECT pc.project_id AS rel_id, c.id, ${nameExpr} AS name
+           FROM project_categories pc
+           JOIN categories c ON c.id = pc.category_id
+           WHERE pc.project_id IN (${ids.map(() => '?').join(',')})
+           ORDER BY c.sort_order ASC, c.name_id ASC`,
+          ids,
+        )
+      : [];
+    const techMap = groupRels(techRows);
+    const catMap = groupRels(catRows);
+    res.json(
+      rows.map((row) => ({
+        ...row,
+        tech_stack: techMap.get(row.id) ?? [],
+        categories: catMap.get(row.id) ?? [],
+      })),
+    );
   }),
 );
 
@@ -175,15 +204,70 @@ publicRouter.get(
     const lang = pickLang(req.params.lang);
     const rows = await query<ProjectRow>(
       `SELECT id, slug, ${langCols(lang, ['title', 'summary', 'content'])}, cover_image,
-        tech_stack, github_url, demo_url, is_featured, published_at
+        github_url, demo_url, is_featured, published_at
        FROM projects
        WHERE site_id = ? AND slug = ? AND is_published = 1`,
       [req.siteId, req.params.slug],
     );
     if (!rows[0]) throw notFound('Proyek tidak ditemukan.');
-    res.json(parseProject(rows[0]));
+
+    const nameExpr = lang === 'id' ? 'COALESCE(c.name_id, c.name_en)' : 'COALESCE(c.name_en, c.name_id)';
+    const techRows = await query<RelRow>(
+      `SELECT pts.project_id AS rel_id, t.id, t.name
+       FROM project_tech_stacks pts
+       JOIN tech_stacks t ON t.id = pts.tech_stack_id
+       WHERE pts.project_id = ? ORDER BY t.sort_order ASC, t.name ASC`,
+      [rows[0].id],
+    );
+    const catRows = await query<RelRow>(
+      `SELECT pc.project_id AS rel_id, c.id, ${nameExpr} AS name
+       FROM project_categories pc
+       JOIN categories c ON c.id = pc.category_id
+       WHERE pc.project_id = ? ORDER BY c.sort_order ASC, c.name_id ASC`,
+      [rows[0].id],
+    );
+    const { prev, next } = await getAdjacent(
+      'projects',
+      req.siteId!,
+      req.params.slug,
+      lang,
+      'ORDER BY sort_order ASC, published_at DESC, id DESC',
+    );
+    res.json({
+      ...rows[0],
+      tech_stack: techRows.map((r) => ({ id: r.id, name: r.name })),
+      categories: catRows.map((r) => ({ id: r.id, name: r.name })),
+      prev,
+      next,
+    });
   }),
 );
+
+interface AdjacentItem {
+  slug: string;
+  title: string | null;
+}
+
+/** Ambil item sebelum/sesudah berdasarkan urutan yang sama dengan daftar publik. */
+async function getAdjacent(
+  table: 'blogs' | 'projects',
+  siteId: number,
+  currentSlug: string,
+  lang: Lang,
+  orderClause: string,
+): Promise<{ prev: AdjacentItem | null; next: AdjacentItem | null }> {
+  const rows = await query<{ slug: string; title: string | null } & mysql.RowDataPacket>(
+    `SELECT slug, ${langCols(lang, ['title'])} FROM ${table}
+     WHERE site_id = ? AND is_published = 1 ${orderClause}`,
+    [siteId],
+  );
+  const idx = rows.findIndex((r) => r.slug === currentSlug);
+  if (idx === -1) return { prev: null, next: null };
+  return {
+    prev: idx > 0 ? { slug: rows[idx - 1].slug, title: rows[idx - 1].title } : null,
+    next: idx < rows.length - 1 ? { slug: rows[idx + 1].slug, title: rows[idx + 1].title } : null,
+  };
+}
 
 /* ---------- Blogs ---------- */
 
@@ -197,10 +281,6 @@ interface BlogRow extends mysql.RowDataPacket {
   tags: string | null;
   views: number;
   published_at: Date | null;
-}
-
-function parseBlog(row: BlogRow) {
-  return { ...row, tags: parseJson(row.tags) };
 }
 
 publicRouter.get(
@@ -219,9 +299,40 @@ publicRouter.get(
        LIMIT ? OFFSET ?`,
       [req.siteId, limit, offset],
     );
-    res.json(rows.map(parseBlog));
+    const ids = rows.map((r) => r.id);
+    const nameExpr = lang === 'id' ? 'COALESCE(c.name_id, c.name_en)' : 'COALESCE(c.name_en, c.name_id)';
+    const catRows = ids.length > 0
+      ? await query<RelRow>(
+          `SELECT bc.blog_id AS rel_id, c.id, ${nameExpr} AS name
+           FROM blog_categories bc
+           JOIN categories c ON c.id = bc.category_id
+           WHERE bc.blog_id IN (${ids.map(() => '?').join(',')})
+           ORDER BY c.sort_order ASC, c.name_id ASC`,
+          ids,
+        )
+      : [];
+    const catMap = groupRels(catRows);
+    res.json(
+      rows.map((row) => ({
+        ...row,
+        tags: parseTags(row.tags),
+        categories: catMap.get(row.id) ?? [],
+      })),
+    );
   }),
 );
+
+function parseTags(value: string | null): string[] {
+  if (value == null) return [];
+  if (typeof value === 'string') {
+    try {
+      return JSON.parse(value);
+    } catch {
+      return [];
+    }
+  }
+  return value as unknown as string[];
+}
 
 publicRouter.get(
   '/:lang/blogs/:slug',
@@ -236,8 +347,42 @@ publicRouter.get(
     );
     if (!rows[0]) throw notFound('Artikel tidak ditemukan.');
 
+    const nameExpr = lang === 'id' ? 'COALESCE(c.name_id, c.name_en)' : 'COALESCE(c.name_en, c.name_id)';
+    const catRows = await query<RelRow>(
+      `SELECT bc.blog_id AS rel_id, c.id, ${nameExpr} AS name
+       FROM blog_categories bc
+       JOIN categories c ON c.id = bc.category_id
+       WHERE bc.blog_id = ? ORDER BY c.sort_order ASC, c.name_id ASC`,
+      [rows[0].id],
+    );
+    const { prev, next } = await getAdjacent(
+      'blogs',
+      req.siteId!,
+      req.params.slug,
+      lang,
+      'ORDER BY published_at DESC, id DESC',
+    );
+    res.json({
+      ...rows[0],
+      tags: parseTags(rows[0].tags),
+      categories: catRows.map((r) => ({ id: r.id, name: r.name })),
+      prev,
+      next,
+    });
+  }),
+);
+
+/** Catat satu kali kunjungan artikel (dipanggil frontend dengan guard, bukan saat GET). */
+publicRouter.post(
+  '/:lang/blogs/:slug/view',
+  asyncHandler(async (req, res) => {
+    const rows = await query<{ id: number; views: number } & mysql.RowDataPacket>(
+      'SELECT id, views FROM blogs WHERE site_id = ? AND slug = ? AND is_published = 1',
+      [req.siteId, req.params.slug],
+    );
+    if (!rows[0]) throw notFound('Artikel tidak ditemukan.');
     await execute('UPDATE blogs SET views = views + 1 WHERE id = ?', [rows[0].id]);
-    res.json({ ...parseBlog(rows[0]), views: rows[0].views + 1 });
+    res.json({ views: rows[0].views + 1 });
   }),
 );
 

@@ -20,7 +20,7 @@ export async function apiGet<T>(path: string): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-export async function apiPost<T>(path: string, body: unknown): Promise<T> {
+export async function apiPost<T>(path: string, body?: unknown): Promise<T> {
   const res = await fetch(`${API_URL}/api${path}`, {
     method: "POST",
     headers: { "X-Site-Key": SITE_KEY, "Content-Type": "application/json" },
@@ -42,6 +42,14 @@ export const projectsPath = (lang: Lang) => `/${lang}/projects`;
 export const projectDetailPath = (lang: Lang, slug: string) => `/${lang}/projects/${slug}`;
 export const blogsPath = (lang: Lang) => `/${lang}/blogs`;
 export const blogDetailPath = (lang: Lang, slug: string) => `/${lang}/blogs/${slug}`;
+
+export function blogViewPath(lang: Lang, slug: string) {
+  return `/${lang}/blogs/${slug}/view`;
+}
+
+export function blogView(lang: Lang, slug: string) {
+  return apiPost<{ views: number }>(blogViewPath(lang, slug));
+}
 
 export function assetUrl(path: string | null | undefined): string | null {
   if (!path) return null;

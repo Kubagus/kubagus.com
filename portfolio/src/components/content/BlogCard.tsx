@@ -32,6 +32,15 @@ export function BlogCard({ post }: BlogCardProps) {
         </div>
       )}
       <CardHeader className="pb-2">
+        {post.categories.length > 0 && (
+          <div className="mb-2 flex flex-wrap gap-1.5">
+            {post.categories.map((cat) => (
+              <Badge key={cat.id} variant="outline" className="text-xs">
+                {cat.name}
+              </Badge>
+            ))}
+          </div>
+        )}
         <CardTitle className="text-lg">
           <Link to={`/blog/${post.slug}`} className="hover:underline">
             {post.title ?? post.slug}

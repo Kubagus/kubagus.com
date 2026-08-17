@@ -67,7 +67,7 @@ async function main() {
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           siteId,
-          'Kubagus',
+          'Ahmad Kubagus Subkhi',
           'Software Engineer',
           'Software Engineer',
           'Membangun aplikasi web yang bersih, cepat, dan mudah dipelihara.',
@@ -183,20 +183,20 @@ async function main() {
     );
     if ((skillRows[0].total as number) === 0) {
       const skills = [
-        ['React', 'React', 'Frontend', 'Frontend', 'react', 90],
-        ['TypeScript', 'TypeScript', 'Frontend', 'Frontend', 'typescript', 85],
-        ['Node.js / Express', 'Node.js / Express', 'Backend', 'Backend', 'nodejs', 85],
-        ['MySQL', 'MySQL', 'Backend', 'Backend', 'database', 80],
-        ['Tailwind CSS', 'Tailwind CSS', 'Frontend', 'Frontend', 'tailwind', 90],
-        ['Git & GitHub', 'Git & GitHub', 'Tools', 'Tools', 'git', 85],
-        ['Docker', 'Docker', 'Tools', 'Tools', 'docker', 70],
-        ['PHP / Laravel', 'PHP / Laravel', 'Backend', 'Backend', 'php', 65],
+        ['React', 'React', 'Frontend', 'Frontend', 'react', 'expert'],
+        ['TypeScript', 'TypeScript', 'Frontend', 'Frontend', 'typescript', 'advanced'],
+        ['Node.js / Express', 'Node.js / Express', 'Backend', 'Backend', 'nodejs', 'advanced'],
+        ['MySQL', 'MySQL', 'Backend', 'Backend', 'database', 'advanced'],
+        ['Tailwind CSS', 'Tailwind CSS', 'Frontend', 'Frontend', 'tailwind', 'expert'],
+        ['Git & GitHub', 'Git & GitHub', 'Tools', 'Tools', 'git', 'advanced'],
+        ['Docker', 'Docker', 'Tools', 'Tools', 'docker', 'intermediate'],
+        ['PHP / Laravel', 'PHP / Laravel', 'Backend', 'Backend', 'php', 'basic'],
       ];
       for (let i = 0; i < skills.length; i++) {
         const s = skills[i];
         await conn.query(
           `INSERT INTO skills
-            (site_id, name_id, name_en, category_id, category_en, icon, proficiency, sort_order)
+            (site_id, name_id, name_en, category_id, category_en, icon, level, sort_order)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
           [siteId, s[0], s[1], s[2], s[3], s[4], s[5], i],
         );
@@ -213,9 +213,9 @@ async function main() {
       await conn.query(
         `INSERT INTO projects
           (site_id, slug, title_id, title_en, summary_id, summary_en,
-           content_id, content_en, tech_stack, github_url, demo_url,
+           content_id, content_en, github_url, demo_url,
            is_featured, is_published, published_at, sort_order)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           siteId,
           'project-management',
@@ -225,7 +225,6 @@ async function main() {
           'An application to manage projects, tasks, and teams.',
           '<h2>Ringkasan</h2><p>Aplikasi ini dibangun dengan React dan Express untuk mengelola proyek secara tim.</p>',
           '<h2>Overview</h2><p>This app was built with React and Express to manage projects as a team.</p>',
-          JSON.stringify(['React', 'Express', 'MySQL', 'Tailwind']),
           'https://github.com/kubagus/project-management',
           'https://pm.kubagus.com',
           1,
@@ -237,9 +236,9 @@ async function main() {
       await conn.query(
         `INSERT INTO projects
           (site_id, slug, title_id, title_en, summary_id, summary_en,
-           content_id, content_en, tech_stack, github_url, demo_url,
+           content_id, content_en, github_url, demo_url,
            is_featured, is_published, published_at, sort_order)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           siteId,
           'url-shortener',
@@ -249,7 +248,6 @@ async function main() {
           'A simple link shortener service with click statistics.',
           '<h2>Ringkasan</h2><p>Pemendek URL dengan pelacakan jumlah klik per tautan.</p>',
           '<h2>Overview</h2><p>A URL shortener with click tracking per link.</p>',
-          JSON.stringify(['Next.js', 'Prisma', 'MySQL']),
           'https://github.com/kubagus/url-shortener',
           'https://short.kubagus.com',
           0,
@@ -306,6 +304,120 @@ async function main() {
         ],
       );
       console.log('Blogs default dibuat.');
+    }
+
+    /* ---------- Tech stacks & categories + pivot ---------- */
+
+    const [stackRows] = await conn.query<mysql.RowDataPacket[]>(
+      'SELECT COUNT(*) AS total FROM tech_stacks WHERE site_id = ?',
+      [siteId],
+    );
+    if ((stackRows[0].total as number) === 0) {
+      const stacks = ['React', 'Express', 'MySQL', 'Tailwind', 'Next.js', 'Prisma', 'TypeScript', 'Docker'];
+      for (let i = 0; i < stacks.length; i++) {
+        await conn.query(
+          'INSERT INTO tech_stacks (site_id, name, slug, sort_order) VALUES (?, ?, ?, ?)',
+          [siteId, stacks[i], stacks[i].toLowerCase().replace(/\s+/g, '-'), i],
+        );
+      }
+      console.log('Tech stacks default dibuat.');
+    }
+
+    const [catRows] = await conn.query<mysql.RowDataPacket[]>(
+      'SELECT COUNT(*) AS total FROM categories WHERE site_id = ?',
+      [siteId],
+    );
+    if ((catRows[0].total as number) === 0) {
+      const categories: Array<[string, string, string, string, string]> = [
+        ['project', 'Aplikasi Web', 'Web App', 'web-app', '0'],
+        ['project', 'API / Backend', 'API / Backend', 'api-backend', '1'],
+        ['blog', 'Tutorial', 'Tutorial', 'tutorial', '0'],
+        ['blog', 'Catatan', 'Notes', 'notes', '1'],
+        ['blog', 'Opini', 'Opinion', 'opinion', '2'],
+      ];
+      for (const [type, nameId, nameEn, slug, order] of categories) {
+        await conn.query(
+          'INSERT INTO categories (site_id, type, name_id, name_en, slug, sort_order) VALUES (?, ?, ?, ?, ?, ?)',
+          [siteId, type, nameId, nameEn, slug, Number(order)],
+        );
+      }
+      console.log('Categories default dibuat.');
+    }
+
+    async function getStackId(slug: string): Promise<number | null> {
+      const [rows] = await conn.query<mysql.RowDataPacket[]>(
+        'SELECT id FROM tech_stacks WHERE site_id = ? AND slug = ?',
+        [siteId, slug],
+      );
+      return rows[0] ? (rows[0].id as number) : null;
+    }
+
+    async function getCategoryId(type: string, slug: string): Promise<number | null> {
+      const [rows] = await conn.query<mysql.RowDataPacket[]>(
+        'SELECT id FROM categories WHERE site_id = ? AND type = ? AND slug = ?',
+        [siteId, type, slug],
+      );
+      return rows[0] ? (rows[0].id as number) : null;
+    }
+
+    async function getProjectId(slug: string): Promise<number | null> {
+      const [rows] = await conn.query<mysql.RowDataPacket[]>(
+        'SELECT id FROM projects WHERE site_id = ? AND slug = ?',
+        [siteId, slug],
+      );
+      return rows[0] ? (rows[0].id as number) : null;
+    }
+
+    async function getBlogId(slug: string): Promise<number | null> {
+      const [rows] = await conn.query<mysql.RowDataPacket[]>(
+        'SELECT id FROM blogs WHERE site_id = ? AND slug = ?',
+        [siteId, slug],
+      );
+      return rows[0] ? (rows[0].id as number) : null;
+    }
+
+    const pmId = await getProjectId('project-management');
+    if (pmId) {
+      for (const slug of ['react', 'express', 'mysql', 'tailwind']) {
+        const stackId = await getStackId(slug);
+        if (stackId) {
+          await conn.query('INSERT IGNORE INTO project_tech_stacks (project_id, tech_stack_id) VALUES (?, ?)', [pmId, stackId]);
+        }
+      }
+      const catWeb = await getCategoryId('project', 'web-app');
+      if (catWeb) {
+        await conn.query('INSERT IGNORE INTO project_categories (project_id, category_id) VALUES (?, ?)', [pmId, catWeb]);
+      }
+    }
+
+    const usId = await getProjectId('url-shortener');
+    if (usId) {
+      for (const slug of ['next.js', 'prisma', 'mysql']) {
+        const stackId = await getStackId(slug);
+        if (stackId) {
+          await conn.query('INSERT IGNORE INTO project_tech_stacks (project_id, tech_stack_id) VALUES (?, ?)', [usId, stackId]);
+        }
+      }
+      const catApi = await getCategoryId('project', 'api-backend');
+      if (catApi) {
+        await conn.query('INSERT IGNORE INTO project_categories (project_id, category_id) VALUES (?, ?)', [usId, catApi]);
+      }
+    }
+
+    const blog1Id = await getBlogId('belajar-express-ts');
+    if (blog1Id) {
+      const catTut = await getCategoryId('blog', 'tutorial');
+      if (catTut) {
+        await conn.query('INSERT IGNORE INTO blog_categories (blog_id, category_id) VALUES (?, ?)', [blog1Id, catTut]);
+      }
+    }
+
+    const blog2Id = await getBlogId('desain-timeline-cv');
+    if (blog2Id) {
+      const catTut = await getCategoryId('blog', 'tutorial');
+      if (catTut) {
+        await conn.query('INSERT IGNORE INTO blog_categories (blog_id, category_id) VALUES (?, ?)', [blog2Id, catTut]);
+      }
     }
 
     const [settingRows] = await conn.query<mysql.RowDataPacket[]>(

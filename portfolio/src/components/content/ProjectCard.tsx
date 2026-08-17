@@ -33,6 +33,15 @@ export function ProjectCard({ project }: ProjectCardProps) {
         </div>
       )}
       <CardHeader className="pb-2">
+        {project.categories.length > 0 && (
+          <div className="mb-2 flex flex-wrap gap-1.5">
+            {project.categories.map((cat) => (
+              <Badge key={cat.id} variant="outline" className="text-xs">
+                {cat.name}
+              </Badge>
+            ))}
+          </div>
+        )}
         <CardTitle className="text-lg">
           <Link to={`/projects/${project.slug}`} className="hover:underline">
             {project.title ?? project.slug}
@@ -46,8 +55,8 @@ export function ProjectCard({ project }: ProjectCardProps) {
         {project.tech_stack.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {project.tech_stack.map((tech) => (
-              <Badge key={tech} variant="secondary">
-                {tech}
+              <Badge key={tech.id} variant="secondary">
+                {tech.name}
               </Badge>
             ))}
           </div>

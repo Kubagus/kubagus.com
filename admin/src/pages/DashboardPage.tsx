@@ -2,7 +2,9 @@ import { Link } from "react-router-dom";
 import {
   BookOpen,
   Briefcase,
+  FolderTree,
   GraduationCap,
+  Layers,
   Mail,
   MessagesSquare,
   Sparkles,
@@ -93,6 +95,8 @@ export function DashboardPage() {
         <StatCard label="Proyek" value={stats.projects} icon={Terminal} to="/admin/projects" hint={`${stats.projects_published} dipublikasikan`} />
         <StatCard label="Artikel" value={stats.blogs} icon={BookOpen} to="/admin/blogs" hint={`${stats.blogs_published} dipublikasikan`} />
         <StatCard label="Keahlian" value={stats.skills} icon={Wrench} to="/admin/skills" />
+        <StatCard label="Kategori" value={stats.categories} icon={FolderTree} to="/admin/categories" />
+        <StatCard label="Teknologi" value={stats.tech_stacks} icon={Layers} to="/admin/tech-stacks" />
         <StatCard label="Pengalaman" value={stats.experiences} icon={Briefcase} to="/admin/experiences" />
         <StatCard label="Pendidikan" value={stats.educations} icon={GraduationCap} to="/admin/educations" />
         <StatCard label="Profil" value={1} icon={Sparkles} to="/admin/profile" hint="Data pribadi & CV" />

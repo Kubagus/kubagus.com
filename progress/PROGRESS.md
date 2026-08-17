@@ -96,6 +96,32 @@
 - [x] `plan/PLAN.md` diperbarui (struktur 3 folder + deskripsi)
 - [x] `.env.example` API + admin/portfolio diperbarui
 
+## Fitur tambahan (level skill, kategori, tech stack)
+- [x] **Skill pakai level** (bukan persentase): kolom `proficiency` → `level ENUM(basic, intermediate, advanced, expert)` (migrasi 002 otomatis konversi ≥90=expert, ≥70=advanced, ≥40=intermediate, sisanya basic)
+- [x] **Kategori**: tabel `categories` (type blog|project, bilingual, slug unik per tipe) + pivot `blog_categories`, `project_categories` (multi-kategori per item)
+- [x] **Tech stack**: tabel `tech_stacks` + pivot `project_tech_stacks`; data lama dari kolom JSON `projects.tech_stack` otomatis dipindah (JSON_TABLE)
+- [x] API: `GET/POST/PUT/DELETE /api/admin/categories?type=`, `/api/admin/tech-stacks`; projects/blogs menerima `tech_stack_ids` & `category_ids`; publik mengembalikan `tech_stack`/`categories` (nama sesuai bahasa)
+- [x] Admin: halaman Kategori (tab Blog/Proyek) & Teknologi baru di sidebar; SkillsPage pakai dropdown level; ProjectForm/BlogForm pakai CheckboxGroup multi-pilih; Dashboard + stats baru
+- [x] Portfolio: SkillsSection badge level (label i18n), kartu & detail menampilkan kategori + tech stack
+- [x] Seed diperbarui (level, kategori, tech stack, pivot) — idempotent
+- [x] Build semua OK, uji end-to-end OK (CRUD kategori/tech-stack, pivot, publik)
+
+## Perubahan tampilan & fitur landing page
+- [x] Nama profil di DB + seed → **Ahmad Kubagus Subkhi** (hero & footer memakai `profile.name`)
+- [x] Link `/admin` di footer **dihapus**
+- [x] **Hero**: teks di tengah, nama besar (gradient primary→teal, hingga text-6xl), avatar di atas, tombol Contact Me + CV + badge — meniru kubagus.pages.dev
+- [x] **What I Do**: section 3 kartu (Software & System Engineering, Data & IT Architecture, Optimization & Tech Strategy) bilingual i18n, tepat sebelum footer
+- [x] **Skills badge**: lebar seragam `w-28 justify-center` (tidak beda ukuran antar level)
+- [x] **Filter landing**: Proyek → filter kategori + tech stack (pill), urut unggulan dulu; Blog → filter kategori; data dari API `limit=100` difilter client-side, `FilterPills` reusable
+- [x] Build OK, lint OK, module transform OK, data filter teruji
+
+## Perbaikan hero, filter, views & paginasi
+- [x] **Hero**: nama tanpa gradien — warna solid `text-foreground` (hitam di light mode)
+- [x] **Filter dipindah ke halaman daftar**: Projects (kategori + tech stack) & Blog (kategori); landing page kembali sederhana (featured + latest)
+- [x] **Bug views fix**: `GET detail` tidak lagi menambah views; endpoint terpisah `POST /:lang/blogs/:slug/view` + guard `useRef` di BlogDetailPage (StrictMode double-effect hanya menghitung 1×; refresh = 1 view)
+- [x] **Pagination prev/next**: detail blog & project menampilkan nav Sebelumnya/Berikutnya (komponen `AdjacentNav`, dari API `prev`/`next` sesuai urutan daftar publik)
+- [x] Build OK, lint OK, teruji: GET 2× views tetap, POST view +1, prev/next benar di kedua tipe
+
 ## Tersisa (opsional / kapan-kapan)
 - [ ] HTTPS (certbot) + `COOKIE_SECURE=true`, `CORS_ORIGIN` daftar origin di produksi
 - [ ] Deploy nginx per konfigurasi di `plan/MULTI-SITE.md`

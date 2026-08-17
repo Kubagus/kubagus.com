@@ -6,6 +6,8 @@ import { requireAuth, requireSiteMatch } from './guards.js';
 import { adminProfileRouter } from './profile.js';
 import { adminExperiencesRouter, adminEducationsRouter } from './timeline.js';
 import { adminSkillsRouter } from './skills.js';
+import { adminCategoriesRouter } from './categories.js';
+import { adminTechStacksRouter } from './techStacks.js';
 import { adminProjectsRouter } from './projects.js';
 import { adminBlogsRouter } from './blogs.js';
 import { adminMessagesRouter } from './messages.js';
@@ -26,6 +28,8 @@ interface StatsRow extends mysql.RowDataPacket {
   educations: number;
   messages: number;
   messages_unread: number;
+  categories: number;
+  tech_stacks: number;
 }
 
 adminRouter.get(
@@ -41,8 +45,10 @@ adminRouter.get(
         (SELECT COUNT(*) FROM experiences WHERE site_id = ?) AS experiences,
         (SELECT COUNT(*) FROM educations WHERE site_id = ?) AS educations,
         (SELECT COUNT(*) FROM contact_messages WHERE site_id = ?) AS messages,
-        (SELECT COUNT(*) FROM contact_messages WHERE site_id = ? AND is_read = 0) AS messages_unread`,
-      Array(9).fill(req.siteId),
+        (SELECT COUNT(*) FROM contact_messages WHERE site_id = ? AND is_read = 0) AS messages_unread,
+        (SELECT COUNT(*) FROM categories WHERE site_id = ?) AS categories,
+        (SELECT COUNT(*) FROM tech_stacks WHERE site_id = ?) AS tech_stacks`,
+      Array(11).fill(req.siteId),
     );
     res.json(rows[0] ?? {});
   }),
@@ -52,6 +58,8 @@ adminRouter.use('/profile', adminProfileRouter);
 adminRouter.use('/experiences', adminExperiencesRouter);
 adminRouter.use('/educations', adminEducationsRouter);
 adminRouter.use('/skills', adminSkillsRouter);
+adminRouter.use('/categories', adminCategoriesRouter);
+adminRouter.use('/tech-stacks', adminTechStacksRouter);
 adminRouter.use('/projects', adminProjectsRouter);
 adminRouter.use('/blogs', adminBlogsRouter);
 adminRouter.use('/messages', adminMessagesRouter);

@@ -7,6 +7,9 @@ import { notFound } from '../../utils/httpError.js';
 
 export const adminSkillsRouter = Router();
 
+export const SKILL_LEVELS = ['basic', 'intermediate', 'advanced', 'expert'] as const;
+export type SkillLevel = (typeof SKILL_LEVELS)[number];
+
 interface SkillRow extends mysql.RowDataPacket {
   id: number;
   name_id: string | null;
@@ -14,7 +17,7 @@ interface SkillRow extends mysql.RowDataPacket {
   category_id: string | null;
   category_en: string | null;
   icon: string | null;
-  proficiency: number;
+  level: SkillLevel;
   sort_order: number;
   is_active: number;
 }
@@ -25,7 +28,7 @@ const skillSchema = z.object({
   category_id: z.string().max(50).nullable().optional(),
   category_en: z.string().max(50).nullable().optional(),
   icon: z.string().max(50).nullable().optional(),
-  proficiency: z.number().int().min(0).max(100).optional(),
+  level: z.enum(SKILL_LEVELS).optional(),
   sort_order: z.number().int().optional(),
   is_active: z.boolean().optional(),
 });
@@ -46,7 +49,7 @@ adminSkillsRouter.post(
   asyncHandler(async (req, res) => {
     const body = skillSchema.parse(req.body);
     const result = await execute(
-      `INSERT INTO skills (site_id, name_id, name_en, category_id, category_en, icon, proficiency, sort_order, is_active)
+      `INSERT INTO skills (site_id, name_id, name_en, category_id, category_en, icon, level, sort_order, is_active)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         req.siteId,
@@ -55,7 +58,7 @@ adminSkillsRouter.post(
         body.category_id ?? null,
         body.category_en ?? null,
         body.icon ?? null,
-        body.proficiency ?? 0,
+        body.level ?? 'basic',
         body.sort_order ?? 0,
         body.is_active === false ? 0 : 1,
       ],
@@ -70,7 +73,7 @@ adminSkillsRouter.put(
     const body = skillSchema.parse(req.body);
     const result = await execute(
       `UPDATE skills
-       SET name_id = ?, name_en = ?, category_id = ?, category_en = ?, icon = ?, proficiency = ?, sort_order = ?, is_active = ?
+       SET name_id = ?, name_en = ?, category_id = ?, category_en = ?, icon = ?, level = ?, sort_order = ?, is_active = ?
        WHERE id = ? AND site_id = ?`,
       [
         body.name_id ?? null,
@@ -78,7 +81,7 @@ adminSkillsRouter.put(
         body.category_id ?? null,
         body.category_en ?? null,
         body.icon ?? null,
-        body.proficiency ?? 0,
+        body.level ?? 'basic',
         body.sort_order ?? 0,
         body.is_active === false ? 0 : 1,
         req.params.id,

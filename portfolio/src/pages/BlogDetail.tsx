@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, Calendar, Eye } from "lucide-react";
@@ -5,8 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RichContent } from "@/components/content/RichContent";
+import { AdjacentNav } from "@/components/content/AdjacentNav";
 import { useApi } from "@/lib/hooks";
-import { apiGet, assetUrl, blogDetailPath } from "@/lib/api";
+import { apiGet, assetUrl, blogDetailPath, blogView } from "@/lib/api";
 import { useSeo } from "@/lib/seo";
 import type { BlogPost } from "@/lib/types";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -20,6 +22,17 @@ export function BlogDetailPage() {
     [lang, slug],
   );
   useSeo(post?.title, post?.excerpt, lang);
+
+  const [views, setViews] = useState<number | null>(null);
+  const countedRef = useRef(false);
+
+  useEffect(() => {
+    if (!post || countedRef.current) return;
+    countedRef.current = true;
+    blogView(lang, post.slug)
+      .then((res) => setViews(res.views))
+      .catch(() => {});
+  }, [post, lang]);
 
   if (loading) {
     return (
@@ -53,6 +66,7 @@ export function BlogDetailPage() {
         day: "numeric",
       })
     : null;
+  const displayViews = views ?? post.views;
 
   return (
     <article className="mx-auto max-w-3xl px-4 py-12">
@@ -64,6 +78,11 @@ export function BlogDetailPage() {
 
       <header className="space-y-4">
         <div className="flex flex-wrap gap-2">
+          {post.categories.map((cat) => (
+            <Badge key={cat.id} variant="outline">
+              {cat.name}
+            </Badge>
+          ))}
           {post.tags.map((tag) => (
             <Badge key={tag} variant="secondary">
               {tag}
@@ -78,7 +97,7 @@ export function BlogDetailPage() {
             </span>
           )}
           <span className="flex items-center gap-1.5">
-            <Eye className="size-4" /> {post.views} {t("blog.views")}
+            <Eye className="size-4" /> {displayViews} {t("blog.views")}
           </span>
         </div>
         {post.excerpt && <p className="text-lg text-muted-foreground">{post.excerpt}</p>}
@@ -93,6 +112,8 @@ export function BlogDetailPage() {
       )}
 
       <RichContent html={post.content} />
+
+      <AdjacentNav prev={post.prev} next={post.next} basePath="/blog" />
     </article>
   );
 }

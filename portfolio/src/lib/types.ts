@@ -42,12 +42,24 @@ export interface Education {
   is_current: number;
 }
 
+export type SkillLevel = "basic" | "intermediate" | "advanced" | "expert";
+
 export interface Skill {
   id: number;
   name: string | null;
   category: string | null;
   icon: string | null;
-  proficiency: number;
+  level: SkillLevel;
+}
+
+export interface RelItem {
+  id: number;
+  name: string;
+}
+
+export interface AdjacentItem {
+  slug: string;
+  title: string | null;
 }
 
 export interface Project {
@@ -57,11 +69,14 @@ export interface Project {
   summary: string | null;
   content: string | null;
   cover_image: string | null;
-  tech_stack: string[];
+  tech_stack: RelItem[];
+  categories: RelItem[];
   github_url: string | null;
   demo_url: string | null;
   is_featured: number;
   published_at: string | null;
+  prev: AdjacentItem | null;
+  next: AdjacentItem | null;
 }
 
 export interface BlogPost {
@@ -72,8 +87,11 @@ export interface BlogPost {
   content: string | null;
   cover_image: string | null;
   tags: string[];
+  categories: RelItem[];
   views: number;
   published_at: string | null;
+  prev: AdjacentItem | null;
+  next: AdjacentItem | null;
 }
 
 export interface ContactFormData {

@@ -20,6 +20,8 @@ export interface Stats {
   educations: number;
   messages: number;
   messages_unread: number;
+  categories: number;
+  tech_stacks: number;
 }
 
 export interface AdminProfile {
@@ -77,6 +79,8 @@ export interface AdminEducation {
   sort_order: number;
 }
 
+export type SkillLevel = "basic" | "intermediate" | "advanced" | "expert";
+
 export interface AdminSkill {
   id: number;
   name_id: string | null;
@@ -84,9 +88,31 @@ export interface AdminSkill {
   category_id: string | null;
   category_en: string | null;
   icon: string | null;
-  proficiency: number;
+  level: SkillLevel;
   sort_order: number;
   is_active: number;
+}
+
+export interface RelItem {
+  id: number;
+  name: string;
+  slug: string;
+}
+
+export interface AdminCategory {
+  id: number;
+  type: "blog" | "project";
+  name_id: string | null;
+  name_en: string | null;
+  slug: string;
+  sort_order: number;
+}
+
+export interface AdminTechStack {
+  id: number;
+  name: string;
+  slug: string;
+  sort_order: number;
 }
 
 export interface AdminProject {
@@ -99,13 +125,16 @@ export interface AdminProject {
   content_id: string | null;
   content_en: string | null;
   cover_image: string | null;
-  tech_stack: string[];
   github_url: string | null;
   demo_url: string | null;
   is_featured: number;
   is_published: number;
   published_at: string | null;
   sort_order: number;
+  tech_stacks: RelItem[];
+  tech_stack_ids: number[];
+  categories: RelItem[];
+  category_ids: number[];
 }
 
 export interface AdminBlog {
@@ -122,6 +151,8 @@ export interface AdminBlog {
   is_published: number;
   published_at: string | null;
   views: number;
+  categories: RelItem[];
+  category_ids: number[];
 }
 
 export interface AdminMessage {
@@ -149,12 +180,13 @@ export interface ProjectPayload {
   content_id: string | null;
   content_en: string | null;
   cover_image: string | null;
-  tech_stack: string[];
   github_url: string | null;
   demo_url: string | null;
   is_featured: boolean;
   is_published: boolean;
   sort_order: number;
+  tech_stack_ids: number[];
+  category_ids: number[];
 }
 
 export interface BlogPayload {
@@ -168,6 +200,7 @@ export interface BlogPayload {
   cover_image: string | null;
   tags: string[];
   is_published: boolean;
+  category_ids: number[];
 }
 
 export function toProjectPayload(p: AdminProject): ProjectPayload {
@@ -180,12 +213,13 @@ export function toProjectPayload(p: AdminProject): ProjectPayload {
     content_id: p.content_id,
     content_en: p.content_en,
     cover_image: p.cover_image,
-    tech_stack: p.tech_stack,
     github_url: p.github_url,
     demo_url: p.demo_url,
     is_featured: !!p.is_featured,
     is_published: !!p.is_published,
     sort_order: p.sort_order,
+    tech_stack_ids: p.tech_stack_ids,
+    category_ids: p.category_ids,
   };
 }
 
@@ -201,6 +235,7 @@ export function toBlogPayload(b: AdminBlog): BlogPayload {
     cover_image: b.cover_image,
     tags: b.tags,
     is_published: !!b.is_published,
+    category_ids: b.category_ids,
   };
 }
 

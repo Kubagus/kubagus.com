@@ -4,6 +4,7 @@ import type mysql from 'mysql2';
 import { query, execute } from '../../config/db.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import { badRequest, notFound } from '../../utils/httpError.js';
+import { getCategoriesByItem, replaceItemCategories } from './relations.js';
 
 export const adminBlogsRouter = Router();
 
@@ -39,6 +40,7 @@ const blogSchema = z.object({
   tags: z.array(z.string()).optional(),
   is_published: z.boolean().optional(),
   published_at: z.coerce.date().nullable().optional(),
+  category_ids: z.array(z.number().int()).optional(),
 });
 
 function toValues(body: z.infer<typeof blogSchema>) {
@@ -57,7 +59,7 @@ function toValues(body: z.infer<typeof blogSchema>) {
   ];
 }
 
-function parseJson(value: unknown): unknown[] {
+function parseTags(value: string | null): string[] {
   if (value == null) return [];
   if (typeof value === 'string') {
     try {
@@ -66,11 +68,7 @@ function parseJson(value: unknown): unknown[] {
       return [];
     }
   }
-  return value as unknown[];
-}
-
-function parseBlog(row: BlogRow) {
-  return { ...row, tags: parseJson(row.tags) };
+  return value as unknown as string[];
 }
 
 async function assertSlugFree(slug: string, siteId: number, excludeId?: number) {
@@ -88,7 +86,21 @@ adminBlogsRouter.get(
       'SELECT * FROM blogs WHERE site_id = ? ORDER BY published_at DESC, id DESC',
       [req.siteId],
     );
-    res.json(rows.map(parseBlog));
+    const catMap = await getCategoriesByItem(
+      'blog_categories',
+      rows.map((r) => r.id),
+    );
+    res.json(
+      rows.map((row) => {
+        const categories = catMap.get(row.id) ?? [];
+        return {
+          ...row,
+          tags: parseTags(row.tags),
+          categories,
+          category_ids: categories.map((c) => c.id),
+        };
+      }),
+    );
   }),
 );
 
@@ -100,7 +112,14 @@ adminBlogsRouter.get(
       [req.params.id, req.siteId],
     );
     if (!rows[0]) throw notFound('Artikel tidak ditemukan.');
-    res.json(parseBlog(rows[0]));
+    const catMap = await getCategoriesByItem('blog_categories', [rows[0].id]);
+    const categories = catMap.get(rows[0].id) ?? [];
+    res.json({
+      ...rows[0],
+      tags: parseTags(rows[0].tags),
+      categories,
+      category_ids: categories.map((c) => c.id),
+    });
   }),
 );
 
@@ -117,6 +136,7 @@ adminBlogsRouter.post(
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [req.siteId, ...toValues(body)],
     );
+    await replaceItemCategories('blog_categories', result.insertId, body.category_ids ?? []);
     res.status(201).json({ id: result.insertId });
   }),
 );
@@ -136,6 +156,7 @@ adminBlogsRouter.put(
       [...toValues(body), req.params.id, req.siteId],
     );
     if (result.affectedRows === 0) throw notFound('Artikel tidak ditemukan.');
+    await replaceItemCategories('blog_categories', Number(req.params.id), body.category_ids ?? []);
     res.json({ success: true });
   }),
 );

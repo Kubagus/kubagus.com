@@ -17,7 +17,15 @@
     "contactMe": "Hubungi Saya",
     "availableForHire": "Tersedia untuk proyek",
     "notAvailable": "Sedang tidak menerima proyek baru",
-    "present": "Sekarang"
+    "present": "Sekarang",
+    "prev": "Sebelumnya",
+    "next": "Berikutnya"
+  },
+  "levels": {
+    "basic": "Basic",
+    "intermediate": "Intermediate",
+    "advanced": "Advanced",
+    "expert": "Expert"
   },
   "home": {
     "hello": "Halo, saya",
@@ -28,7 +36,24 @@
     "viewProject": "Lihat proyek",
     "visitDemo": "Demo",
     "sourceCode": "Kode sumber",
-    "noFeatured": "Belum ada proyek unggulan."
+    "noFeatured": "Belum ada proyek unggulan.",
+    "projects": "Proyek",
+    "filterAll": "Semua",
+    "whatIDo": "Yang Saya Lakukan",
+    "services": {
+      "software": {
+        "title": "Software & System Engineering",
+        "desc": "Membangun solusi perangkat lunak dan sistem teknologi yang andal untuk berbagai kebutuhan bisnis."
+      },
+      "architecture": {
+        "title": "Data & IT Architecture",
+        "desc": "Merancang arsitektur IT dan sistem manajemen data yang aman, efisien, dan dapat diskalakan."
+      },
+      "optimization": {
+        "title": "Optimization & Tech Strategy",
+        "desc": "Meningkatkan performa sistem, skalabilitas operasional, dan pengalaman pengguna secara menyeluruh."
+      }
+    }
   },
   "about": {
     "title": "Tentang Saya",

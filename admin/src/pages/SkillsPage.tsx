@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -17,7 +18,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useApi } from "@/lib/hooks";
 import { adminApi } from "@/lib/api";
-import type { AdminSkill } from "@/lib/types";
+import type { AdminSkill, SkillLevel } from "@/lib/types";
+
+const LEVELS: { value: SkillLevel; label: string }[] = [
+  { value: "basic", label: "Basic" },
+  { value: "intermediate", label: "Intermediate" },
+  { value: "advanced", label: "Advanced" },
+  { value: "expert", label: "Expert" },
+];
+
+const levelVariant: Record<SkillLevel, "secondary" | "default" | "outline"> = {
+  basic: "secondary",
+  intermediate: "outline",
+  advanced: "default",
+  expert: "default",
+};
 
 interface FormState {
   id?: number;
@@ -26,7 +41,7 @@ interface FormState {
   category_id: string;
   category_en: string;
   icon: string;
-  proficiency: number;
+  level: SkillLevel;
   sort_order: number;
   is_active: boolean;
 }
@@ -37,7 +52,7 @@ const emptyForm: FormState = {
   category_id: "",
   category_en: "",
   icon: "",
-  proficiency: 0,
+  level: "basic",
   sort_order: 0,
   is_active: true,
 };
@@ -61,7 +76,7 @@ export function SkillsPage() {
       category_id: skill.category_id ?? "",
       category_en: skill.category_en ?? "",
       icon: skill.icon ?? "",
-      proficiency: skill.proficiency,
+      level: skill.level,
       sort_order: skill.sort_order,
       is_active: !!skill.is_active,
     });
@@ -107,7 +122,9 @@ export function SkillsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Keahlian</h1>
-          <p className="text-sm text-muted-foreground">Daftar skill dengan tingkat penguasaan.</p>
+          <p className="text-sm text-muted-foreground">
+            Skala level: basic, intermediate, advanced, expert.
+          </p>
         </div>
         <Button onClick={openCreate}>
           <Plus className="mr-1 size-4" /> Tambah
@@ -121,7 +138,7 @@ export function SkillsPage() {
               <TableHead>Nama (ID)</TableHead>
               <TableHead>Nama (EN)</TableHead>
               <TableHead>Kategori</TableHead>
-              <TableHead>Penguasaan</TableHead>
+              <TableHead>Level</TableHead>
               <TableHead>Aktif</TableHead>
               <TableHead className="w-24 text-right">Aksi</TableHead>
             </TableRow>
@@ -147,7 +164,9 @@ export function SkillsPage() {
                   <TableCell className="text-muted-foreground">
                     {skill.category_id || skill.category_en || "—"}
                   </TableCell>
-                  <TableCell className="text-muted-foreground">{skill.proficiency}%</TableCell>
+                  <TableCell>
+                    <Badge variant={levelVariant[skill.level]}>{skill.level}</Badge>
+                  </TableCell>
                   <TableCell>{skill.is_active ? "Ya" : "Tidak"}</TableCell>
                   <TableCell className="text-right">
                     <Button variant="ghost" size="icon" onClick={() => openEdit(skill)} aria-label="Edit">
@@ -209,14 +228,18 @@ export function SkillsPage() {
               <Input value={form.icon} onChange={(e) => setForm({ ...form, icon: e.target.value })} placeholder="react" />
             </div>
             <div className="space-y-2">
-              <Label>Penguasaan (0-100)</Label>
-              <Input
-                type="number"
-                min={0}
-                max={100}
-                value={form.proficiency}
-                onChange={(e) => setForm({ ...form, proficiency: Number(e.target.value) })}
-              />
+              <Label>Level</Label>
+              <select
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                value={form.level}
+                onChange={(e) => setForm({ ...form, level: e.target.value as SkillLevel })}
+              >
+                {LEVELS.map((l) => (
+                  <option key={l.value} value={l.value}>
+                    {l.label}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="space-y-2">
               <Label>Urutan</Label>

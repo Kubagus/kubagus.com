@@ -94,7 +94,9 @@ export function ProjectsPage() {
                   </TableCell>
                   <TableCell className="text-muted-foreground">{project.slug}</TableCell>
                   <TableCell className="text-muted-foreground">
-                    {project.tech_stack.length > 0 ? project.tech_stack.join(", ") : "—"}
+                    {project.tech_stacks.length > 0
+                      ? project.tech_stacks.map((s) => s.name).join(", ")
+                      : "—"}
                   </TableCell>
                   <TableCell>
                     {project.is_published ? (

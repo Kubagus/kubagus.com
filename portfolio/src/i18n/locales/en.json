@@ -17,7 +17,15 @@
     "contactMe": "Contact Me",
     "availableForHire": "Available for projects",
     "notAvailable": "Currently not accepting new projects",
-    "present": "Present"
+    "present": "Present",
+    "prev": "Previous",
+    "next": "Next"
+  },
+  "levels": {
+    "basic": "Basic",
+    "intermediate": "Intermediate",
+    "advanced": "Advanced",
+    "expert": "Expert"
   },
   "home": {
     "hello": "Hello, I'm",
@@ -28,7 +36,24 @@
     "viewProject": "View project",
     "visitDemo": "Demo",
     "sourceCode": "Source code",
-    "noFeatured": "No featured projects yet."
+    "noFeatured": "No featured projects yet.",
+    "projects": "Projects",
+    "filterAll": "All",
+    "whatIDo": "What I Do",
+    "services": {
+      "software": {
+        "title": "Software & System Engineering",
+        "desc": "Building reliable software solutions and technology systems for various business needs."
+      },
+      "architecture": {
+        "title": "Data & IT Architecture",
+        "desc": "Designing secure, efficient, and scalable IT architecture and data management systems."
+      },
+      "optimization": {
+        "title": "Optimization & Tech Strategy",
+        "desc": "Improving system performance, operational scalability, and overall user experience."
+      }
+    }
   },
   "about": {
     "title": "About Me",

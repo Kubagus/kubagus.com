@@ -11,10 +11,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { TipTapEditor } from "@/components/admin/TipTapEditor";
+import { CheckboxGroup } from "@/components/admin/CheckboxGroup";
 import { useApi } from "@/lib/hooks";
 import { adminApi } from "@/lib/api";
 import { slugify } from "@/lib/types";
-import type { AdminBlog, BlogPayload } from "@/lib/types";
+import type { AdminBlog, AdminCategory, BlogPayload } from "@/lib/types";
 
 interface FormState {
   slug: string;
@@ -27,6 +28,7 @@ interface FormState {
   cover_image: string | null;
   tags: string;
   is_published: boolean;
+  category_ids: number[];
 }
 
 const emptyForm: FormState = {
@@ -40,6 +42,7 @@ const emptyForm: FormState = {
   cover_image: null,
   tags: "",
   is_published: false,
+  category_ids: [],
 };
 
 function toForm(blog: AdminBlog): FormState {
@@ -54,6 +57,7 @@ function toForm(blog: AdminBlog): FormState {
     cover_image: blog.cover_image,
     tags: blog.tags.join(", "),
     is_published: !!blog.is_published,
+    category_ids: blog.category_ids,
   };
 }
 
@@ -72,6 +76,7 @@ function toPayload(form: FormState): BlogPayload {
       .map((s) => s.trim().toLowerCase())
       .filter(Boolean),
     is_published: form.is_published,
+    category_ids: form.category_ids,
   };
 }
 
@@ -83,6 +88,9 @@ export function BlogFormPage() {
   const { data, loading } = useApi<AdminBlog | null>(
     () => (isEdit ? adminApi.get(`/admin/blogs/${id}`) : Promise.resolve(null)),
     [id],
+  );
+  const { data: categories } = useApi<AdminCategory[]>(() =>
+    adminApi.get("/admin/categories?type=blog"),
   );
 
   const [form, setForm] = useState<FormState>(emptyForm);
@@ -183,6 +191,18 @@ export function BlogFormPage() {
               value={form.tags}
               onChange={(e) => update("tags", e.target.value)}
               placeholder="react, express, backend"
+            />
+          </div>
+          <div className="space-y-2 sm:col-span-2">
+            <Label>Kategori</Label>
+            <CheckboxGroup
+              options={(categories ?? []).map((c) => ({
+                id: c.id,
+                label: c.name_id || c.name_en || c.slug,
+              }))}
+              selected={form.category_ids}
+              onChange={(ids) => update("category_ids", ids)}
+              emptyText="Belum ada kategori blog. Tambahkan di menu Kategori."
             />
           </div>
           <div className="flex items-end gap-6 pb-1">

@@ -11,10 +11,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { TipTapEditor } from "@/components/admin/TipTapEditor";
+import { CheckboxGroup } from "@/components/admin/CheckboxGroup";
 import { useApi } from "@/lib/hooks";
 import { adminApi } from "@/lib/api";
 import { slugify } from "@/lib/types";
-import type { AdminProject, ProjectPayload } from "@/lib/types";
+import type { AdminCategory, AdminProject, AdminTechStack, ProjectPayload } from "@/lib/types";
 
 interface FormState {
   slug: string;
@@ -25,12 +26,13 @@ interface FormState {
   content_id: string;
   content_en: string;
   cover_image: string | null;
-  tech_stack: string;
   github_url: string;
   demo_url: string;
   is_featured: boolean;
   is_published: boolean;
   sort_order: number;
+  tech_stack_ids: number[];
+  category_ids: number[];
 }
 
 const emptyForm: FormState = {
@@ -42,12 +44,13 @@ const emptyForm: FormState = {
   content_id: "",
   content_en: "",
   cover_image: null,
-  tech_stack: "",
   github_url: "",
   demo_url: "",
   is_featured: false,
   is_published: false,
   sort_order: 0,
+  tech_stack_ids: [],
+  category_ids: [],
 };
 
 function toForm(project: AdminProject): FormState {
@@ -60,12 +63,13 @@ function toForm(project: AdminProject): FormState {
     content_id: project.content_id ?? "",
     content_en: project.content_en ?? "",
     cover_image: project.cover_image,
-    tech_stack: project.tech_stack.join(", "),
     github_url: project.github_url ?? "",
     demo_url: project.demo_url ?? "",
     is_featured: !!project.is_featured,
     is_published: !!project.is_published,
     sort_order: project.sort_order,
+    tech_stack_ids: project.tech_stack_ids,
+    category_ids: project.category_ids,
   };
 }
 
@@ -79,15 +83,13 @@ function toPayload(form: FormState): ProjectPayload {
     content_id: form.content_id || null,
     content_en: form.content_en || null,
     cover_image: form.cover_image,
-    tech_stack: form.tech_stack
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean),
     github_url: form.github_url || null,
     demo_url: form.demo_url || null,
     is_featured: form.is_featured,
     is_published: form.is_published,
     sort_order: form.sort_order,
+    tech_stack_ids: form.tech_stack_ids,
+    category_ids: form.category_ids,
   };
 }
 
@@ -99,6 +101,10 @@ export function ProjectFormPage() {
   const { data, loading } = useApi<AdminProject | null>(
     () => (isEdit ? adminApi.get(`/admin/projects/${id}`) : Promise.resolve(null)),
     [id],
+  );
+  const { data: stacks } = useApi<AdminTechStack[]>(() => adminApi.get("/admin/tech-stacks"));
+  const { data: categories } = useApi<AdminCategory[]>(() =>
+    adminApi.get("/admin/categories?type=project"),
   );
 
   const [form, setForm] = useState<FormState>(emptyForm);
@@ -209,12 +215,25 @@ export function ProjectFormPage() {
               placeholder="https://demo.kubagus.com"
             />
           </div>
-          <div className="space-y-2 sm:col-span-2">
-            <Label>Teknologi (pisahkan dengan koma)</Label>
-            <Input
-              value={form.tech_stack}
-              onChange={(e) => update("tech_stack", e.target.value)}
-              placeholder="React, Express, MySQL"
+          <div className="space-y-2">
+            <Label>Tech stack</Label>
+            <CheckboxGroup
+              options={(stacks ?? []).map((s) => ({ id: s.id, label: s.name }))}
+              selected={form.tech_stack_ids}
+              onChange={(ids) => update("tech_stack_ids", ids)}
+              emptyText="Belum ada tech stack. Tambahkan di menu Teknologi."
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Kategori</Label>
+            <CheckboxGroup
+              options={(categories ?? []).map((c) => ({
+                id: c.id,
+                label: c.name_id || c.name_en || c.slug,
+              }))}
+              selected={form.category_ids}
+              onChange={(ids) => update("category_ids", ids)}
+              emptyText="Belum ada kategori proyek. Tambahkan di menu Kategori."
             />
           </div>
           <div className="space-y-2">

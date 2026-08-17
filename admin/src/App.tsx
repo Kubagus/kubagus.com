@@ -8,6 +8,8 @@ import { DashboardPage } from "@/pages/DashboardPage";
 import { ProfilePage } from "@/pages/ProfilePage";
 import { TimelinePage } from "@/pages/TimelinePage";
 import { SkillsPage } from "@/pages/SkillsPage";
+import { CategoriesPage } from "@/pages/CategoriesPage";
+import { TechStacksPage } from "@/pages/TechStacksPage";
 import { ProjectsPage } from "@/pages/ProjectsPage";
 import { BlogsPage } from "@/pages/BlogsPage";
 import { MessagesPage } from "@/pages/MessagesPage";
@@ -60,6 +62,8 @@ export default function App() {
           <Route path="experiences" element={<TimelinePage type="experiences" />} />
           <Route path="educations" element={<TimelinePage type="educations" />} />
           <Route path="skills" element={<SkillsPage />} />
+          <Route path="categories" element={<CategoriesPage />} />
+          <Route path="tech-stacks" element={<TechStacksPage />} />
           <Route path="projects" element={<ProjectsPage />} />
           <Route
             path="projects/new"

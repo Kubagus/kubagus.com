@@ -1,9 +1,17 @@
 import { useTranslation } from "react-i18next";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useApi } from "@/lib/hooks";
 import { apiGet, skillsPath } from "@/lib/api";
-import type { Skill } from "@/lib/types";
+import type { Skill, SkillLevel } from "@/lib/types";
 import { useLanguage } from "@/contexts/LanguageContext";
+
+const levelVariant: Record<SkillLevel, "secondary" | "outline" | "default"> = {
+  basic: "secondary",
+  intermediate: "outline",
+  advanced: "default",
+  expert: "default",
+};
 
 export function SkillsSection() {
   const { t } = useTranslation();
@@ -40,19 +48,16 @@ export function SkillsSection() {
             <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
               {category}
             </h3>
-            <div className="space-y-3">
+            <div className="space-y-2">
               {list.map((skill) => (
-                <div key={skill.id} className="space-y-1.5">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium">{skill.name}</span>
-                    <span className="text-muted-foreground">{skill.proficiency}%</span>
-                  </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-muted">
-                    <div
-                      className="h-full rounded-full bg-primary transition-all"
-                      style={{ width: `${skill.proficiency}%` }}
-                    />
-                  </div>
+                <div
+                  key={skill.id}
+                  className="flex items-center justify-between rounded-lg border border-border px-4 py-2.5"
+                >
+                  <span className="font-medium">{skill.name}</span>
+                  <Badge variant={levelVariant[skill.level]} className="w-28 justify-center">
+                    {t(`levels.${skill.level}`)}
+                  </Badge>
                 </div>
               ))}
             </div>

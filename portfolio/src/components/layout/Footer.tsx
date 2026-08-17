@@ -8,6 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SocialIcon } from "@/components/content/SocialIcon";
 
+const quickLinks = [
+  { to: "/", key: "home" },
+  { to: "/about", key: "about" },
+  { to: "/projects", key: "projects" },
+  { to: "/blog", key: "blog" },
+  { to: "/contact", key: "contact" },
+] as const;
+
 export function Footer() {
   const { t } = useTranslation();
   const { lang } = useLanguage();
@@ -17,10 +25,26 @@ export function Footer() {
 
   return (
     <footer className="mt-auto border-t border-border">
-      <div className="mx-auto flex max-w-5xl flex-col items-center gap-4 px-4 py-8 sm:flex-row sm:justify-between">
-        <p className="text-sm text-muted-foreground">
-          © {new Date().getFullYear()} {profile?.name ?? "kubagus.com"}
-        </p>
+      <div className="mx-auto flex max-w-5xl flex-col items-center gap-6 px-4 py-8 md:flex-row md:justify-between">
+        <div className="text-center md:text-left">
+          <p className="font-semibold">{profile?.name ?? "Ahmad Kubagus Subkhi"}</p>
+          <p className="text-sm text-muted-foreground">
+            © {new Date().getFullYear()} {profile?.name ?? "Ahmad Kubagus Subkhi"}
+          </p>
+        </div>
+
+        <nav className="flex flex-wrap items-center justify-center gap-1">
+          {quickLinks.map((link) => (
+            <Link
+              key={link.to}
+              to={link.to}
+              className="rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+            >
+              {t(`nav.${link.key}`)}
+            </Link>
+          ))}
+        </nav>
+
         <div className="flex items-center gap-2">
           {loading
             ? Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="size-8 rounded-md" />)
@@ -32,9 +56,6 @@ export function Footer() {
                 </Button>
               ))}
         </div>
-        <Link to="/admin" className="text-xs text-muted-foreground/60 hover:text-foreground">
-          {t("nav.home")} · admin
-        </Link>
       </div>
     </footer>
   );

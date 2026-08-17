@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RichContent } from "@/components/content/RichContent";
+import { AdjacentNav } from "@/components/content/AdjacentNav";
 import { SocialIcon } from "@/components/content/SocialIcon";
 import { useApi } from "@/lib/hooks";
 import { apiGet, assetUrl, projectDetailPath } from "@/lib/api";
@@ -57,14 +58,23 @@ export function ProjectDetailPage() {
       </Button>
 
       <header className="space-y-4">
+        {project.categories.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {project.categories.map((cat) => (
+              <Badge key={cat.id} variant="outline">
+                {cat.name}
+              </Badge>
+            ))}
+          </div>
+        )}
         <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
           {project.title ?? project.slug}
         </h1>
         {project.summary && <p className="text-lg text-muted-foreground">{project.summary}</p>}
         <div className="flex flex-wrap gap-2">
           {project.tech_stack.map((tech) => (
-            <Badge key={tech} variant="secondary">
-              {tech}
+            <Badge key={tech.id} variant="secondary">
+              {tech.name}
             </Badge>
           ))}
         </div>
@@ -95,6 +105,8 @@ export function ProjectDetailPage() {
       )}
 
       <RichContent html={project.content} />
+
+      <AdjacentNav prev={project.prev} next={project.next} basePath="/projects" />
     </article>
   );
 }

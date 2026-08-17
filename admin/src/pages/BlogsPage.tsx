@@ -46,7 +46,7 @@ export function BlogsPage() {
             <TableRow>
               <TableHead className="w-16">Gambar</TableHead>
               <TableHead>Judul</TableHead>
-              <TableHead>Slug</TableHead>
+              <TableHead>Kategori</TableHead>
               <TableHead>Tag</TableHead>
               <TableHead>Dilihat</TableHead>
               <TableHead>Status</TableHead>
@@ -84,7 +84,11 @@ export function BlogsPage() {
                   <TableCell className="font-medium">
                     {blog.title_id || blog.title_en || blog.slug}
                   </TableCell>
-                  <TableCell className="text-muted-foreground">{blog.slug}</TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {blog.categories.length > 0
+                      ? blog.categories.map((c) => c.name).join(", ")
+                      : "—"}
+                  </TableCell>
                   <TableCell className="text-muted-foreground">
                     {blog.tags.length > 0 ? blog.tags.join(", ") : "—"}
                   </TableCell>

@@ -18,28 +18,36 @@ export function Hero() {
   const picture = assetUrl(profile?.profile_picture);
 
   return (
-    <section className="mx-auto flex max-w-5xl flex-col items-start gap-10 px-4 py-16 md:flex-row md:items-center md:py-24">
-      <div className="flex-1 space-y-6">
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-muted-foreground">{t("home.hello")}</p>
-          {loading ? (
-            <>
-              <Skeleton className="h-12 w-64" />
-              <Skeleton className="h-6 w-80 max-w-full" />
-            </>
-          ) : (
-            <>
-              <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-                {profile?.name ?? "Kubagus"}
-              </h1>
-              <p className="text-xl font-medium text-muted-foreground">{profile?.title}</p>
-              <p className="max-w-xl text-muted-foreground">{profile?.headline}</p>
-            </>
-          )}
-        </div>
+    <section className="mx-auto max-w-5xl px-4 py-16 text-center md:py-24">
+      <div className="mx-auto flex max-w-3xl flex-col items-center gap-6">
+        {loading ? (
+          <>
+            <Skeleton className="size-28 rounded-full" />
+            <Skeleton className="h-16 w-72" />
+            <Skeleton className="h-6 w-48" />
+            <Skeleton className="h-5 w-full max-w-xl" />
+          </>
+        ) : (
+          <>
+            {picture && (
+              <Avatar className="size-28 border-4 border-border shadow-lg">
+                <AvatarImage src={picture} alt={profile?.name ?? "Avatar"} />
+                <AvatarFallback className="text-4xl">
+                  {profile?.name?.charAt(0) ?? "A"}
+                </AvatarFallback>
+              </Avatar>
+            )}
+            <p className="text-sm font-medium text-muted-foreground">{t("home.hello")}</p>
+            <h1 className="pb-2 text-4xl font-bold tracking-tight text-foreground sm:text-5xl md:text-6xl">
+              {profile?.name ?? "Ahmad Kubagus Subkhi"}
+            </h1>
+            <p className="text-lg font-medium text-muted-foreground md:text-xl">{profile?.title}</p>
+            <p className="max-w-2xl text-muted-foreground">{profile?.headline}</p>
+          </>
+        )}
 
         {!loading && profile && (
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center justify-center gap-3">
             <Button asChild size="lg">
               <Link to="/contact">
                 {t("common.contactMe")} <ArrowRight className="ml-1 size-4" />
@@ -58,19 +66,6 @@ export function Hero() {
           </div>
         )}
       </div>
-
-      {loading ? (
-        <Skeleton className="size-56 shrink-0 rounded-full" />
-      ) : (
-        picture && (
-          <Avatar className="size-56 shrink-0 border-4 border-border shadow-lg">
-            <AvatarImage src={picture} alt={profile?.name ?? "Avatar"} />
-            <AvatarFallback className="text-5xl">
-              {profile?.name?.charAt(0) ?? "K"}
-            </AvatarFallback>
-          </Avatar>
-        )
-      )}
     </section>
   );
 }

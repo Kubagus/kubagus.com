@@ -13,7 +13,7 @@ export function FeaturedProjects() {
   const { t } = useTranslation();
   const { lang } = useLanguage();
   const { data: projects, loading } = useApi<Project[]>(
-    () => apiGet<Project[]>(`${projectsPath(lang)}?limit=6`),
+    () => apiGet<Project[]>(`${projectsPath(lang)}?limit=50`),
     [lang],
   );
 
