@@ -1,0 +1,77 @@
+{
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "projects": "Projects",
+    "blog": "Blog",
+    "contact": "Contact"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong while loading data.",
+    "retry": "Try again",
+    "viewAll": "View all",
+    "readMore": "Read more",
+    "back": "Back",
+    "cv": "Download CV",
+    "contactMe": "Contact Me",
+    "availableForHire": "Available for projects",
+    "notAvailable": "Currently not accepting new projects",
+    "present": "Present"
+  },
+  "home": {
+    "hello": "Hello, I'm",
+    "featuredProjects": "Featured Projects",
+    "viewAllProjects": "All projects",
+    "latestPosts": "Latest Posts",
+    "viewAllPosts": "All posts",
+    "viewProject": "View project",
+    "visitDemo": "Demo",
+    "sourceCode": "Source code",
+    "noFeatured": "No featured projects yet."
+  },
+  "about": {
+    "title": "About Me",
+    "summary": "Short profile",
+    "experience": "Experience",
+    "education": "Education",
+    "skills": "Skills"
+  },
+  "projects": {
+    "title": "Projects",
+    "subtitle": "A selection of things I've built.",
+    "noProjects": "No published projects yet.",
+    "stack": "Stack",
+    "backToProjects": "Back to projects"
+  },
+  "blog": {
+    "title": "Blog",
+    "subtitle": "Notes, tutorials, and my writings.",
+    "noPosts": "No published posts yet.",
+    "postedOn": "Published",
+    "views": "views",
+    "backToBlog": "Back to posts"
+  },
+  "contact": {
+    "title": "Contact",
+    "subtitle": "Have a question, a job offer, or just want to say hi? Send a message below.",
+    "name": "Name",
+    "namePlaceholder": "Your full name",
+    "email": "Email",
+    "emailPlaceholder": "you@example.com",
+    "subject": "Subject",
+    "subjectPlaceholder": "Message subject",
+    "message": "Message",
+    "messagePlaceholder": "Write your message here...",
+    "send": "Send Message",
+    "sending": "Sending...",
+    "success": "Message sent! Thanks for reaching out.",
+    "error": "Failed to send the message. Please try again.",
+    "invalid": "Please fill in name, email, and message correctly."
+  },
+  "notFound": {
+    "title": "404",
+    "desc": "The page you are looking for does not exist.",
+    "back": "Back to home"
+  }
+}

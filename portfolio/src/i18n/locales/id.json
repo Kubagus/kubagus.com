@@ -1,0 +1,77 @@
+{
+  "nav": {
+    "home": "Beranda",
+    "about": "Tentang",
+    "projects": "Proyek",
+    "blog": "Blog",
+    "contact": "Kontak"
+  },
+  "common": {
+    "loading": "Memuat...",
+    "error": "Terjadi kesalahan saat memuat data.",
+    "retry": "Coba lagi",
+    "viewAll": "Lihat semua",
+    "readMore": "Baca selengkapnya",
+    "back": "Kembali",
+    "cv": "Unduh CV",
+    "contactMe": "Hubungi Saya",
+    "availableForHire": "Tersedia untuk proyek",
+    "notAvailable": "Sedang tidak menerima proyek baru",
+    "present": "Sekarang"
+  },
+  "home": {
+    "hello": "Halo, saya",
+    "featuredProjects": "Proyek Unggulan",
+    "viewAllProjects": "Semua proyek",
+    "latestPosts": "Artikel Terbaru",
+    "viewAllPosts": "Semua artikel",
+    "viewProject": "Lihat proyek",
+    "visitDemo": "Demo",
+    "sourceCode": "Kode sumber",
+    "noFeatured": "Belum ada proyek unggulan."
+  },
+  "about": {
+    "title": "Tentang Saya",
+    "summary": "Profil singkat",
+    "experience": "Pengalaman",
+    "education": "Pendidikan",
+    "skills": "Keahlian"
+  },
+  "projects": {
+    "title": "Proyek",
+    "subtitle": "Beberapa karya yang pernah saya buat.",
+    "noProjects": "Belum ada proyek yang dipublikasikan.",
+    "stack": "Teknologi",
+    "backToProjects": "Kembali ke daftar proyek"
+  },
+  "blog": {
+    "title": "Blog",
+    "subtitle": "Catatan, tutorial, dan tulisan saya.",
+    "noPosts": "Belum ada artikel yang dipublikasikan.",
+    "postedOn": "Dipublikasikan",
+    "views": "dilihat",
+    "backToBlog": "Kembali ke daftar artikel"
+  },
+  "contact": {
+    "title": "Kontak",
+    "subtitle": "Punya pertanyaan, tawaran kerja, atau sekadar menyapa? Kirim pesan di bawah.",
+    "name": "Nama",
+    "namePlaceholder": "Nama lengkap Anda",
+    "email": "Email",
+    "emailPlaceholder": "email@contoh.com",
+    "subject": "Subjek",
+    "subjectPlaceholder": "Subjek pesan",
+    "message": "Pesan",
+    "messagePlaceholder": "Tulis pesan Anda di sini...",
+    "send": "Kirim Pesan",
+    "sending": "Mengirim...",
+    "success": "Pesan terkirim! Terima kasih sudah menghubungi.",
+    "error": "Gagal mengirim pesan. Coba lagi.",
+    "invalid": "Mohon isi nama, email, dan pesan dengan benar."
+  },
+  "notFound": {
+    "title": "404",
+    "desc": "Halaman yang Anda cari tidak ditemukan.",
+    "back": "Kembali ke beranda"
+  }
+}

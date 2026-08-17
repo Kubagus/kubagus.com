@@ -1,0 +1,141 @@
+import { Briefcase, GraduationCap, type LucideIcon } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useApi } from "@/lib/hooks";
+import { apiGet, educationsPath, experiencesPath } from "@/lib/api";
+import type { Education, Experience } from "@/lib/types";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useTranslation } from "react-i18next";
+
+interface TimelineItem {
+  id: number;
+  title: string | null;
+  subtitle: string | null;
+  description: string | null;
+  start_date: string;
+  end_date: string | null;
+  is_current: number;
+}
+
+function formatPeriod(start: string, end: string | null, isCurrent: number, lang: string, present: string) {
+  const opts: Intl.DateTimeFormatOptions = { month: "short", year: "numeric" };
+  const locale = lang === "id" ? "id-ID" : "en-US";
+  const startLabel = new Date(start + "T00:00:00").toLocaleDateString(locale, opts);
+  const endLabel = isCurrent ? present : end ? new Date(end + "T00:00:00").toLocaleDateString(locale, opts) : "—";
+  return `${startLabel} — ${endLabel}`;
+}
+
+function TimelineList({
+  items,
+  emptyText,
+  lang,
+  present,
+}: {
+  items: TimelineItem[];
+  emptyText: string;
+  lang: string;
+  present: string;
+}) {
+  if (items.length === 0) return <p className="text-sm text-muted-foreground">{emptyText}</p>;
+  return (
+    <ol className="relative space-y-8 border-l border-border pl-6">
+      {items.map((item) => (
+        <li key={item.id} className="relative">
+          <span className="absolute -left-[31px] flex size-3 items-center justify-center rounded-full bg-primary ring-4 ring-background">
+            <span className="size-1.5 rounded-full bg-primary-foreground" />
+          </span>
+          <h3 className="font-semibold">{item.title}</h3>
+          <p className="text-sm font-medium text-muted-foreground">{item.subtitle}</p>
+          <p className="text-xs text-muted-foreground">
+            {formatPeriod(item.start_date, item.end_date, item.is_current, lang, present)}
+          </p>
+          {item.description && (
+            <p className="mt-1 text-sm text-muted-foreground">{item.description}</p>
+          )}
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+function TimelineColumn({
+  icon: Icon,
+  title,
+  loading,
+  items,
+  emptyText,
+  lang,
+  present,
+}: {
+  icon: LucideIcon;
+  title: string;
+  loading: boolean;
+  items: TimelineItem[];
+  emptyText: string;
+  lang: string;
+  present: string;
+}) {
+  return (
+    <section className="space-y-6">
+      <h2 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
+        <Icon className="size-5" /> {title}
+      </h2>
+      {loading ? (
+        <div className="space-y-4">
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-24 w-full" />
+        </div>
+      ) : (
+        <TimelineList items={items} emptyText={emptyText} lang={lang} present={present} />
+      )}
+    </section>
+  );
+}
+
+export function Timeline() {
+  const { t } = useTranslation();
+  const { lang } = useLanguage();
+  const present = t("common.present");
+
+  const experiences = useApi<Experience[]>(() => apiGet(experiencesPath(lang)), [lang]);
+  const educations = useApi<Education[]>(() => apiGet(educationsPath(lang)), [lang]);
+  const loading = experiences.loading || educations.loading;
+
+  return (
+    <div className="grid gap-10 lg:grid-cols-2">
+      <TimelineColumn
+        icon={Briefcase}
+        title={t("about.experience")}
+        loading={loading}
+        items={(experiences.data ?? []).map((e) => ({
+          id: e.id,
+          title: e.position,
+          subtitle: e.company,
+          description: e.description,
+          start_date: e.start_date,
+          end_date: e.end_date,
+          is_current: e.is_current,
+        }))}
+        emptyText="—"
+        lang={lang}
+        present={present}
+      />
+      <TimelineColumn
+        icon={GraduationCap}
+        title={t("about.education")}
+        loading={loading}
+        items={(educations.data ?? []).map((e) => ({
+          id: e.id,
+          title: e.degree,
+          subtitle: e.institution,
+          description: e.description,
+          start_date: e.start_date,
+          end_date: e.end_date,
+          is_current: e.is_current,
+        }))}
+        emptyText="—"
+        lang={lang}
+        present={present}
+      />
+    </div>
+  );
+}
