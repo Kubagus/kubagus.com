@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { Cpu, Database, Rocket, type LucideIcon } from "lucide-react";
+import { Cpu, Database, TrendingUp, type LucideIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 interface Service {
@@ -14,7 +14,7 @@ export function WhatIDo() {
   const services: Service[] = [
     { title: t("home.services.software.title"), desc: t("home.services.software.desc"), icon: Cpu },
     { title: t("home.services.architecture.title"), desc: t("home.services.architecture.desc"), icon: Database },
-    { title: t("home.services.optimization.title"), desc: t("home.services.optimization.desc"), icon: Rocket },
+    { title: t("home.services.optimization.title"), desc: t("home.services.optimization.desc"), icon: TrendingUp },
   ];
 
   return (

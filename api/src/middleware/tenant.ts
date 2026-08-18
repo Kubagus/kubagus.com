@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import type mysql from 'mysql2';
 import { pool } from '../config/db.js';
 import { AppError } from '../utils/httpError.js';
+import { env } from '../config/env.js';
 
 export interface SiteInfo {
   id: number;
@@ -19,7 +20,14 @@ declare global {
   }
 }
 
-const siteCache = new Map<string, SiteInfo>();
+interface CacheEntry {
+  info: SiteInfo | null;
+  ts: number;
+}
+
+const CACHE_TTL_MS = 5 * 60 * 1000;
+const CACHE_MAX_ENTRIES = 1000;
+const siteCache = new Map<string, CacheEntry>();
 
 interface SiteRow extends mysql.RowDataPacket {
   id: number;
@@ -27,9 +35,29 @@ interface SiteRow extends mysql.RowDataPacket {
   domain: string;
 }
 
+function isLoopbackHost(host: string | undefined): boolean {
+  if (!host) return true;
+  return /^localhost(:|$)|^127\.\d{1,3}\.\d{1,3}\.\d{1,3}(:|$)|^\[::1\](:|$)/.test(host);
+}
+
+function cacheGet(hostname: string): CacheEntry | undefined {
+  const entry = siteCache.get(hostname);
+  if (entry && Date.now() - entry.ts > CACHE_TTL_MS) {
+    siteCache.delete(hostname);
+    return undefined;
+  }
+  return entry;
+}
+
+function cacheSet(hostname: string, info: SiteInfo | null) {
+  if (siteCache.size >= CACHE_MAX_ENTRIES) siteCache.clear();
+  siteCache.set(hostname, { info, ts: Date.now() });
+}
+
 async function loadSiteByHost(host: string): Promise<SiteInfo | null> {
   const hostname = host.split(':')[0].toLowerCase();
-  if (siteCache.has(hostname)) return siteCache.get(hostname)!;
+  const cached = cacheGet(hostname);
+  if (cached) return cached.info;
 
   const [rows] = await pool.execute<SiteRow[]>(
     'SELECT id, key_name, domain FROM sites WHERE is_active = 1',
@@ -38,7 +66,7 @@ async function loadSiteByHost(host: string): Promise<SiteInfo | null> {
   const byDomain = rows.find((r) => r.domain.toLowerCase() === hostname);
   if (byDomain) {
     const info: SiteInfo = { id: byDomain.id, key: byDomain.key_name, domain: byDomain.domain };
-    siteCache.set(hostname, info);
+    cacheSet(hostname, info);
     return info;
   }
 
@@ -50,12 +78,12 @@ async function loadSiteByHost(host: string): Promise<SiteInfo | null> {
     );
     if (bySub) {
       const info: SiteInfo = { id: bySub.id, key: bySub.key_name, domain: bySub.domain };
-      siteCache.set(hostname, info);
+      cacheSet(hostname, info);
       return info;
     }
   }
 
-  siteCache.set(hostname, null as unknown as SiteInfo);
+  cacheSet(hostname, null);
   return null;
 }
 
@@ -64,11 +92,13 @@ export async function tenantMiddleware(req: Request, _res: Response, next: NextF
     const host = req.headers.host;
     let site: SiteInfo | null = null;
 
-    if (host && !/^localhost(:|$)|^127\.0\.0\.1(:|$)/.test(host)) {
+    if (!isLoopbackHost(host) && host) {
       site = await loadSiteByHost(host);
     }
 
-    if (!site) {
+    // Fallback (X-Site-Key / ?site=) hanya untuk koneksi loopback (dev),
+    // agar tenant tidak bisa dipilih bebas lewat header/query di produksi.
+    if (!site && isLoopbackHost(host)) {
       const fallbackKey = (req.headers['x-site-key'] as string) || (req.query.site as string) || 'portfolio';
       const [rows] = await pool.execute<SiteRow[]>(
         'SELECT id, key_name, domain FROM sites WHERE key_name = ? AND is_active = 1',
@@ -78,7 +108,12 @@ export async function tenantMiddleware(req: Request, _res: Response, next: NextF
     }
 
     if (!site) {
-      throw new AppError('Situs tidak ditemukan. Periksa Host header atau X-Site-Key.', 404);
+      throw new AppError(
+        env.isProd
+          ? 'Situs tidak ditemukan.'
+          : 'Situs tidak ditemukan. Periksa Host header atau X-Site-Key.',
+        404,
+      );
     }
 
     req.site = site;

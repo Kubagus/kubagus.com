@@ -67,6 +67,7 @@
     "subtitle": "Beberapa karya yang pernah saya buat.",
     "noProjects": "Belum ada proyek yang dipublikasikan.",
     "stack": "Teknologi",
+    "searchPlaceholder": "Cari proyek...",
     "backToProjects": "Kembali ke daftar proyek"
   },
   "blog": {
@@ -75,6 +76,7 @@
     "noPosts": "Belum ada artikel yang dipublikasikan.",
     "postedOn": "Dipublikasikan",
     "views": "dilihat",
+    "searchPlaceholder": "Cari artikel...",
     "backToBlog": "Kembali ke daftar artikel"
   },
   "contact": {

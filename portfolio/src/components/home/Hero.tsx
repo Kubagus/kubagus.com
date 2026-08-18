@@ -19,7 +19,7 @@ export function Hero() {
 
   return (
     <section className="mx-auto max-w-5xl px-4 py-16 text-center md:py-24">
-      <div className="mx-auto flex max-w-3xl flex-col items-center gap-6">
+      <div className="mx-auto flex max-w-3xl flex-col items-center gap-4">
         {loading ? (
           <>
             <Skeleton className="size-28 rounded-full" />

@@ -36,7 +36,7 @@ export function requireAuth(req: Request, _res: Response, next: NextFunction) {
     return next(unauthorized('Token tidak ditemukan.'));
   }
   try {
-    const payload = jwt.verify(token, env.jwt.secret) as {
+    const payload = jwt.verify(token, env.jwt.secret, { algorithms: ['HS256'] }) as {
       id: number;
       siteId: number;
       email: string;

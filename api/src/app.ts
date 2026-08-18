@@ -32,7 +32,15 @@ export function createApp() {
   app.use(cookieParser());
   app.use(morgan('dev'));
 
-  app.use(`/${env.uploadDir}`, express.static(path.resolve(env.uploadDir)));
+  app.use(
+    `/${env.uploadDir}`,
+    express.static(path.resolve(env.uploadDir), {
+      index: false,
+      dotfiles: 'deny',
+      maxAge: '30d',
+      immutable: true,
+    }),
+  );
 
   app.use('/api', apiRouter);
 

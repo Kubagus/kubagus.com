@@ -375,9 +375,31 @@ publicRouter.get(
 );
 
 /** Catat satu kali kunjungan artikel (dipanggil frontend dengan guard, bukan saat GET). */
+const VIEW_MAX = 5;
+const VIEW_WINDOW_MS = 10 * 60 * 1000;
+const VIEW_CACHE_MAX = 5000;
+const viewCache = new Map<string, { count: number; windowStart: number }>();
+
+function allowView(slug: string, ip: string): boolean {
+  const key = `${slug}|${ip}`;
+  const now = Date.now();
+  const entry = viewCache.get(key);
+  if (!entry || now - entry.windowStart > VIEW_WINDOW_MS) {
+    viewCache.set(key, { count: 1, windowStart: now });
+    return true;
+  }
+  if (entry.count >= VIEW_MAX) return false;
+  entry.count += 1;
+  return true;
+}
+
 publicRouter.post(
   '/:lang/blogs/:slug/view',
   asyncHandler(async (req, res) => {
+    if (!allowView(req.params.slug, req.ip ?? 'unknown')) {
+      return res.json({ views: null });
+    }
+    if (viewCache.size > VIEW_CACHE_MAX) viewCache.clear();
     const rows = await query<{ id: number; views: number } & mysql.RowDataPacket>(
       'SELECT id, views FROM blogs WHERE site_id = ? AND slug = ? AND is_published = 1',
       [req.siteId, req.params.slug],
@@ -420,7 +442,7 @@ const contactSchema = z.object({
   name: z.string().min(1).max(100),
   email: z.string().email().max(255),
   subject: z.string().max(255).optional().default(''),
-  message: z.string().min(1),
+  message: z.string().min(1).max(5000),
 });
 
 publicRouter.post(

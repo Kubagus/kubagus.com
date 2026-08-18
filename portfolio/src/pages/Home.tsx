@@ -11,9 +11,9 @@ export function HomePage() {
   return (
     <>
       <Hero />
+      <WhatIDo />
       <FeaturedProjects />
       <LatestPosts />
-      <WhatIDo />
     </>
   );
 }

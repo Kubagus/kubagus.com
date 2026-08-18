@@ -14,8 +14,10 @@ interface SettingRow extends mysql.RowDataPacket {
 }
 
 const settingSchema = z.object({
-  skey: z.string().min(1).max(100),
-  svalue: z.unknown(),
+  skey: z.string().min(1).max(100).regex(/^[a-zA-Z0-9_.-]+$/, 'Key setting tidak valid.'),
+  svalue: z.unknown().refine((v) => JSON.stringify(v ?? null).length <= 10_000, {
+    message: 'Nilai setting terlalu besar (maks 10.000 karakter).',
+  }),
 });
 
 adminSettingsRouter.get(

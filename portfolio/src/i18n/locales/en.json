@@ -67,6 +67,7 @@
     "subtitle": "A selection of things I've built.",
     "noProjects": "No published projects yet.",
     "stack": "Stack",
+    "searchPlaceholder": "Search projects...",
     "backToProjects": "Back to projects"
   },
   "blog": {
@@ -75,6 +76,7 @@
     "noPosts": "No published posts yet.",
     "postedOn": "Published",
     "views": "views",
+    "searchPlaceholder": "Search posts...",
     "backToBlog": "Back to posts"
   },
   "contact": {

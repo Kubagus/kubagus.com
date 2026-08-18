@@ -14,8 +14,8 @@ export function AboutSection() {
   const { data: profile, loading } = useApi<Profile>(() => apiGet(profilePath(lang)), [lang]);
 
   return (
-    <section className="space-y-6">
-      <h2 className="text-2xl font-bold tracking-tight">{t("about.title")}</h2>
+    <section className="space-y-6 text-center">
+      <h2 className="text-3xl font-bold tracking-tight md:text-4xl">{t("about.title")}</h2>
       {loading ? (
         <div className="space-y-3">
           <Skeleton className="h-4 w-full" />
@@ -24,13 +24,13 @@ export function AboutSection() {
         </div>
       ) : profile ? (
         <>
-          <div className="max-w-3xl space-y-4 text-muted-foreground">
+          <div className="mx-auto max-w-3xl space-y-4 text-justify text-muted-foreground">
             {profile.summary?.split("\n\n").map((paragraph, i) => (
               <p key={i}>{paragraph}</p>
             ))}
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center justify-center gap-3">
             <Button asChild size="lg">
               <Link to="/contact">
                 {t("common.contactMe")} <ArrowRight className="ml-1 size-4" />
@@ -45,7 +45,7 @@ export function AboutSection() {
             )}
           </div>
 
-          <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
+          <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
             {profile.location && (
               <span className="flex items-center gap-1.5">
                 <MapPin className="size-4" /> {profile.location}
