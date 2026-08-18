@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CheckCircle2, Loader2, Send } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,9 +13,10 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { useApi } from "@/lib/hooks";
-import { apiGet, contactSubmit, profilePath } from "@/lib/api";
+import { apiGet, assetUrl, contactSubmit, profilePath } from "@/lib/api";
 import { useSeo } from "@/lib/seo";
 import type { ContactFormData, Profile } from "@/lib/types";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -23,7 +25,8 @@ export function ContactPage() {
   const { t } = useTranslation();
   const { lang } = useLanguage();
   useSeo(t("contact.title"), t("contact.subtitle"), lang);
-  const { data: profile } = useApi<Profile>(() => apiGet(profilePath(lang)), [lang]);
+  const { data: profile, loading } = useApi<Profile>(() => apiGet(profilePath(lang)), [lang]);
+  const picture = assetUrl(profile?.profile_picture);
 
   const [form, setForm] = useState<ContactFormData>({ name: "", email: "", subject: "", message: "" });
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
@@ -56,18 +59,40 @@ export function ContactPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-12">
-      <header className="mb-10 space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{t("contact.title")}</h1>
-        <p className="text-muted-foreground">{t("contact.subtitle")}</p>
-        {profile?.email && (
-          <p className="text-sm text-muted-foreground">
-            {profile.email} {profile.phone ? `· ${profile.phone}` : ""}
-          </p>
-        )}
-      </header>
+    <div className="mx-auto max-w-5xl px-4 py-12">
+      <section className="text-center">
+        <div className="mx-auto flex max-w-3xl flex-col items-center gap-4">
+          {loading ? (
+            <>
+              <Skeleton className="size-28 rounded-full" />
+              <Skeleton className="h-12 w-72" />
+              <Skeleton className="h-6 w-48" />
+            </>
+          ) : (
+            <>
+              {picture && (
+                <Avatar className="size-28 border-4 border-border shadow-lg">
+                  <AvatarImage src={picture} alt={profile?.name ?? "Avatar"} />
+                  <AvatarFallback className="text-4xl">
+                    {profile?.name?.charAt(0) ?? "A"}
+                  </AvatarFallback>
+                </Avatar>
+              )}
+              <h1 className="pb-2 text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
+                {t("contact.title")}
+              </h1>
+              <p className="max-w-2xl text-muted-foreground">{t("contact.subtitle")}</p>
+              {profile?.email && (
+                <p className="text-sm text-muted-foreground">
+                  {profile.email} {profile.phone ? `· ${profile.phone}` : ""}
+                </p>
+              )}
+            </>
+          )}
+        </div>
+      </section>
 
-      <form onSubmit={onSubmit} className="space-y-5">
+      <form onSubmit={onSubmit} className="mx-auto mt-12 max-w-3xl space-y-5">
         <div className="grid gap-5 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="name">{t("contact.name")}</Label>

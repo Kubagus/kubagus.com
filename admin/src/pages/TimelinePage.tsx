@@ -14,8 +14,8 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
+import { BulletListInput } from "@/components/admin/BulletListInput";
 import { useApi } from "@/lib/hooks";
 import { adminApi } from "@/lib/api";
 import { formatDate } from "@/lib/types";
@@ -26,6 +26,7 @@ type Item = AdminExperience | AdminEducation;
 interface FormState {
   id?: number;
   name: string;
+  name_en: string;
   pos_id: string;
   pos_en: string;
   desc_id: string;
@@ -38,6 +39,7 @@ interface FormState {
 
 const emptyForm: FormState = {
   name: "",
+  name_en: "",
   pos_id: "",
   pos_en: "",
   desc_id: "",
@@ -68,6 +70,7 @@ export function TimelinePage({ type }: { type: "experiences" | "educations" }) {
     setForm({
       id: item.id,
       name: isExp ? exp.company : edu.institution,
+      name_en: isExp ? (exp.company_en ?? "") : "",
       pos_id: isExp ? (exp.position_id ?? "") : (edu.degree_id ?? ""),
       pos_en: isExp ? (exp.position_en ?? "") : (edu.degree_en ?? ""),
       desc_id: exp.description_id ?? edu.description_id ?? "",
@@ -88,6 +91,7 @@ export function TimelinePage({ type }: { type: "experiences" | "educations" }) {
     setSaving(true);
     const payload = {
       [isExp ? "company" : "institution"]: form.name,
+      ...(isExp ? { company_en: form.name_en || null } : {}),
       [isExp ? "position_id" : "degree_id"]: form.pos_id || null,
       [isExp ? "position_en" : "degree_en"]: form.pos_en || null,
       description_id: form.desc_id || null,
@@ -207,6 +211,7 @@ export function TimelinePage({ type }: { type: "experiences" | "educations" }) {
           </DialogHeader>
 
           <div className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label>{isExp ? "Perusahaan" : "Institusi"} *</Label>
               <Input
@@ -215,6 +220,17 @@ export function TimelinePage({ type }: { type: "experiences" | "educations" }) {
                 placeholder={isExp ? "PT Contoh Teknologi" : "Universitas Contoh"}
               />
             </div>
+            {isExp && (
+              <div className="space-y-2">
+                <Label>Company (EN)</Label>
+                <Input
+                  value={form.name_en}
+                  onChange={(e) => setForm({ ...form, name_en: e.target.value })}
+                  placeholder="Example Technology Ltd."
+                />
+              </div>
+            )}
+          </div>
 
             <Tabs defaultValue="id">
               <TabsList>
@@ -227,8 +243,12 @@ export function TimelinePage({ type }: { type: "experiences" | "educations" }) {
                   <Input value={form.pos_id} onChange={(e) => setForm({ ...form, pos_id: e.target.value })} />
                 </div>
                 <div className="space-y-2">
-                  <Label>Deskripsi (ID)</Label>
-                  <Textarea rows={3} value={form.desc_id} onChange={(e) => setForm({ ...form, desc_id: e.target.value })} />
+                  <Label>Deskripsi (ID) — satu baris per poin</Label>
+                  <BulletListInput
+                    value={form.desc_id}
+                    onChange={(v) => setForm({ ...form, desc_id: v })}
+                    placeholder="Tulis poin deskripsi di sini..."
+                  />
                 </div>
               </TabsContent>
               <TabsContent value="en" className="space-y-3">
@@ -237,8 +257,12 @@ export function TimelinePage({ type }: { type: "experiences" | "educations" }) {
                   <Input value={form.pos_en} onChange={(e) => setForm({ ...form, pos_en: e.target.value })} />
                 </div>
                 <div className="space-y-2">
-                  <Label>Description (EN)</Label>
-                  <Textarea rows={3} value={form.desc_en} onChange={(e) => setForm({ ...form, desc_en: e.target.value })} />
+                  <Label>Description (EN) — one bullet per line</Label>
+                  <BulletListInput
+                    value={form.desc_en}
+                    onChange={(v) => setForm({ ...form, desc_en: v })}
+                    placeholder="Write description bullet here..."
+                  />
                 </div>
               </TabsContent>
             </Tabs>

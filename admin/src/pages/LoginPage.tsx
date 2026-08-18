@@ -57,7 +57,7 @@ export function LoginPage() {
             className="flex size-12 items-center justify-center rounded-lg bg-primary font-mono text-2xl font-bold leading-none text-primary-foreground"
             aria-label="kubagus.com"
           >
-            {"|<"}
+            {"|<_"}
           </span>
           <CardTitle className="mt-2">Panel Admin kubagus.com</CardTitle>
           <CardDescription>Masuk untuk mengelola konten situs.</CardDescription>
@@ -72,7 +72,6 @@ export function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@kubagus.com"
               />
             </div>
             <div className="space-y-2">
@@ -83,7 +82,6 @@ export function LoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
               />
             </div>
             {error && <p className="text-sm font-medium text-destructive">{error}</p>}

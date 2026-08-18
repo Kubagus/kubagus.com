@@ -59,6 +59,7 @@ export interface AdminSocial {
 export interface AdminExperience {
   id: number;
   company: string;
+  company_en: string | null;
   position_id: string | null;
   position_en: string | null;
   description_id: string | null;

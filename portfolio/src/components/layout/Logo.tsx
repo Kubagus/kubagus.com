@@ -4,7 +4,7 @@ interface LogoProps {
   className?: string;
 }
 
-/** Logo berupa "|<" (mirip huruf K). */
+/** Logo berupa "|<_" (mirip huruf K). */
 export function Logo({ className }: LogoProps) {
   return (
     <span
@@ -14,7 +14,7 @@ export function Logo({ className }: LogoProps) {
       )}
       aria-label="kubagus.com"
     >
-      {"|<"}
+      {"|<_"}
     </span>
   );
 }

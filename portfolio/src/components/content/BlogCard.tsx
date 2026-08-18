@@ -16,7 +16,12 @@ export function BlogCard({ post }: BlogCardProps) {
   const cover = assetUrl(post.cover_image);
 
   return (
-    <Card className="flex h-full flex-col overflow-hidden">
+    <Card className="relative flex h-full flex-col overflow-hidden">
+      <Link
+        to={`/blog/${post.slug}`}
+        className="absolute inset-0 z-10"
+        aria-label={post.title ?? post.slug}
+      />
       {cover ? (
         <Link to={`/blog/${post.slug}`} className="block aspect-video overflow-hidden bg-muted">
           <img
@@ -63,7 +68,7 @@ export function BlogCard({ post }: BlogCardProps) {
         )}
       </CardContent>
       <CardFooter className="flex items-center justify-between">
-        <Button size="sm" variant="ghost" asChild>
+        <Button size="sm" variant="ghost" asChild className="relative z-20">
           <Link to={`/blog/${post.slug}`}>
             {t("common.readMore")} <ArrowRight className="ml-1 size-3.5" />
           </Link>

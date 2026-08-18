@@ -26,9 +26,11 @@ type TableName = 'experiences' | 'educations';
 function makeRouter(table: TableName) {
   const router = Router();
   const nameCol = table === 'experiences' ? 'company' : 'institution';
+  const nameEnCol = table === 'experiences' ? 'company_en' : null;
   const positionCols = table === 'experiences' ? ['position_id', 'position_en'] : ['degree_id', 'degree_en'];
   const allCols = [
     nameCol,
+    ...(nameEnCol ? [nameEnCol] : []),
     ...positionCols,
     'description_id',
     'description_en',
@@ -40,6 +42,7 @@ function makeRouter(table: TableName) {
 
   const schema = z.object({
     [nameCol]: z.string().min(1).max(150),
+    ...(nameEnCol ? { [nameEnCol]: z.string().max(150).nullable().optional() } : {}),
     [positionCols[0]]: z.string().max(150).nullable().optional(),
     [positionCols[1]]: z.string().max(150).nullable().optional(),
     description_id: z.string().nullable().optional(),
@@ -54,6 +57,7 @@ function makeRouter(table: TableName) {
     const b = body as unknown as Record<string, unknown>;
     return [
       b[nameCol] as string,
+      ...(nameEnCol ? [(b[nameEnCol] as string) ?? null] : []),
       (b[positionCols[0]] as string) ?? null,
       (b[positionCols[1]] as string) ?? null,
       (b.description_id as string) ?? null,

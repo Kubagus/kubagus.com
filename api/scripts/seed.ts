@@ -117,12 +117,13 @@ async function main() {
     if ((expRows[0].total as number) === 0) {
       await conn.query(
         `INSERT INTO experiences
-          (site_id, company, position_id, position_en, description_id, description_en,
+          (site_id, company, company_en, position_id, position_en, description_id, description_en,
            start_date, end_date, is_current, sort_order)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           siteId,
           'PT Contoh Teknologi',
+          'Example Technology Ltd.',
           'Software Engineer',
           'Software Engineer',
           'Mengembangkan fitur backend dan frontend untuk produk internal.',
@@ -135,11 +136,12 @@ async function main() {
       );
       await conn.query(
         `INSERT INTO experiences
-          (site_id, company, position_id, position_en, description_id, description_en,
+          (site_id, company, company_en, position_id, position_en, description_id, description_en,
            start_date, end_date, is_current, sort_order)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           siteId,
+          'Freelance',
           'Freelance',
           'Full-Stack Developer',
           'Full-Stack Developer',

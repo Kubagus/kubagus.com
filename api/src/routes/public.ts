@@ -73,7 +73,7 @@ publicRouter.get(
   asyncHandler(async (req, res) => {
     const lang = pickLang(req.params.lang);
     const rows = await query<TimelineRow>(
-      `SELECT id, company, ${langCols(lang, ['position', 'description'])},
+      `SELECT id, ${lang === 'id' ? 'company' : 'COALESCE(company_en, company)'} AS company, ${langCols(lang, ['position', 'description'])},
         start_date, end_date, is_current
        FROM experiences WHERE site_id = ? ORDER BY sort_order ASC, start_date DESC`,
       [req.siteId],

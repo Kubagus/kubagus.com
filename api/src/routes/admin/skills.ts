@@ -27,7 +27,7 @@ const skillSchema = z.object({
   name_en: z.string().max(100).nullable().optional(),
   category_id: z.string().max(50).nullable().optional(),
   category_en: z.string().max(50).nullable().optional(),
-  icon: z.string().max(50).nullable().optional(),
+  icon: z.string().max(255).nullable().optional(),
   level: z.enum(SKILL_LEVELS).optional(),
   sort_order: z.number().int().optional(),
   is_active: z.boolean().optional(),

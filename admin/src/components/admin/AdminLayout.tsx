@@ -125,7 +125,7 @@ export function AdminLayout() {
       <aside className="hidden w-64 shrink-0 flex-col gap-4 border-r border-border bg-background p-4 lg:flex">
         <Link to="/admin" className="flex items-center gap-2 px-1 font-semibold tracking-tight">
           <span className="flex size-8 items-center justify-center rounded-md bg-primary font-mono text-lg font-bold leading-none text-primary-foreground">
-            {"|<"}
+            {"|<_"}
           </span>
           kubagus.com / admin
         </Link>

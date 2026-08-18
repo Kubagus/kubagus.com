@@ -138,6 +138,46 @@
 - [x] **Rate limit login**: `src/services/loginAttempts.ts` (in-memory per email+IP) — 5× gagal → terkunci 3 menit (429), pesan sisa percobaan (401) di tiap kegagalan, password benar pun tetap diblokir saat terkunci; berhasil login → counter direset; `trust proxy loopback` agar IP benar saat di belakang nginx
 - [x] Teruji: 1-4 gagal 401 sisa percobaan, ke-5 & ke-6 → 429 "Coba lagi dalam 3 menit", email lain tidak terpengaruh
 
+## Dialog admin tidak menutup saat klik di luar
+- [x] **Form dialog anti-close**: `admin/src/components/ui/dialog.tsx` — `DialogContent` kini mem-block `onPointerDownOutside` + `onInteractOutside` secara default, jadi klik area luar tidak menutup form (mencegah data hilang saat sedang edit). Tombol Escape, X, dan Batal tetap berfungsi. Prop opsional `closeOnOutsideClick` untuk mengembalikan perilaku lama
+- [x] Berlaku untuk semua dialog admin: Pengalaman/Pendidikan, Skills, Kategori, Tech Stack, dan dialog gambar TipTap (di form project/blog)
+- [x] Build OK, lint OK
+
+## Nama perusahaan (pengalaman) bilingual
+- [x] **Migration `004_experience_company_en.sql`**: kolom `company_en VARCHAR(150) NULL` di tabel `experiences` (sudah diterapkan ke DB)
+- [x] **API admin** (`routes/admin/timeline.ts`): schema + POST/PUT menerima `company_en` untuk experiences (educations tidak terpengaruh); GET mengembalikan `company_en`
+- [x] **API publik** (`routes/public.ts`): `GET /:lang/experiences` — bahasa `en` mengembalikan `COALESCE(company_en, company) AS company`, bahasa `id` tetap `company`
+- [x] **Admin** (`TimelinePage.tsx`, `lib/types.ts`): input "Company (EN)" di samping "Perusahaan" (hanya Pengalaman)
+- [x] Seed diperbarui dengan `company_en`
+- [x] Teruji end-to-end: PUT `company_en` → `GET /api/en/experiences` menampilkan versi Inggris, `/api/id/experiences` tetap Indonesia; server API di-restart dengan build baru
+
+## Isi konten pengalaman & pendidikan dari kubagus.pages.dev
+- [x] Data diambil dari Supabase situs kubagus.pages.dev (tabel `experience` & `education`) dan diisi ke kubagus.com via admin API (data seed lama dihapus):
+  - **Pengalaman** (urutan terbaru di atas): Magang Maganghub — Kementerian Imigrasi dan Pemasyarakatan, Pemalang (Nov 2025–Mei 2026) · Magang MBKM Mandiri — Yayasan Tuberkulosis Terbesar Yogyakarta (Mar–Jun 2024) · Freelance Web Developer — Dsarea (Okt 2023–Apr 2024)
+  - **Pendidikan**: Sarjana Komputer (S1 Informatika) — Universitas Muhammadiyah Semarang (2021–2025) · Matematika dan IPA — SMA Negeri 2 Pemalang (2018–2021)
+- [x] Semua konten bilingual (ID/EN) termasuk `company_en`; tampilan web tidak diubah
+- [x] Terverifikasi via API publik id & en (urutan, konten, bahasa)
+
+## Deskripsi pengalaman bullet point & card klik penuh
+- [x] **BulletListInput** (`admin/src/components/admin/BulletListInput.tsx`): editor deskripsi per poin — tiap baris jadi input sendiri, tombol "Tambah poin", hapus per poin, Enter untuk poin baru; dipakai di form Pengalaman & Pendidikan (tab ID/EN); input posisi tetap tersedia ("Posisi (ID)" / "Position (EN)")
+- [x] **Render bullet di publik** (`portfolio/.../Timeline.tsx`): deskripsi pengalaman ditampilkan sebagai bullet list (satu baris = satu poin, prefix `|-` otomatis dibersihkan); deskripsi pendidikan tetap paragraf
+- [x] **Card klik penuh**: `ProjectCard.tsx` & `BlogCard.tsx` — stretched link overlay (`absolute inset-0 z-10`) menutupi seluruh card → klik di mana pun (gambar/judul/ringkasan) menuju halaman detail; tombol demo/github/"Lihat Proyek"/"Baca Selengkapnya" diberi `z-20` agar tetap berfungsi
+- [x] Build OK, lint OK (hanya warning lama)
+
+## Logo "|<_", layout About & hero Kontak
+- [x] **Logo diubah ke `|<_`** (menggantikan `|<`): `portfolio/.../layout/Logo.tsx`, favicon `portfolio/public/favicon.svg` (ukuran font disesuaikan agar muat), logo halaman login admin, dan logo sidebar dashboard admin (`AdminLayout.tsx` — desktop & mobile)
+- [x] **Layout About**: `Timeline.tsx` — grid 2 kolom diganti stacked (`space-y-10`); section **Experience selebar halaman penuh**, **Education di bawahnya** (urutan: About → Experience → Education → Skills)
+- [x] **Hero Kontak**: halaman Contact kini punya hero section di tengah — avatar profil (skeleton saat loading), judul besar, subtitle, email/telepon; form di bawahnya tetap `max-w-3xl`
+- [x] **Placeholder login admin dihapus** (`LoginPage.tsx`): field email & kata sandi tanpa placeholder
+- [x] Build OK, lint OK
+
+## Ikon keahlian tampil di landing page
+- [x] **SkillIcon** (`portfolio/src/components/content/SkillIcon.tsx`): render ikon skill di samping nama pada `SkillsSection` — dukungan URL/path/data-URI sebagai `<img>`, nama polos (mis. "react") otomatis dibangun URL icon, dan **fallback `onError` → ikon lucide Code** (tidak ada gambar rusak)
+- [x] **Migration `005_skill_icon_url.sql`**: kolom `skills.icon` diperbesar `VARCHAR(50)` → `VARCHAR(255)` agar muat URL; API admin (`routes/admin/skills.ts`) ikut dinaikkan `z.string().max(50)` → `max(255)`
+- [x] **Sumber ikon**: awalnya badge img.shields.io (`--000` = background hitam) → **tidak cocok light mode** dan `logo=Node.js` tidak dikenali (slug simple-icons = `nodedotjs`) → diganti ke **cdn.simpleicons.org** (glyph murni warna brand, tanpa background, cocok light & dark). 8 skill diisi URL warna brand (React #61DAFB, TypeScript #3178C6, Node.js #339933, MySQL #4479A1, TailwindCSS #06B6D4, Git #F05032, Docker #2496ED, PHP #777BB4); "Server Management" kosong → fallback ikon Code
+- [x] Nama polos di admin diberi warna abu adaptif tema (gelap `e5e7eb` / terang `1f2937`)
+- [x] Build OK, lint OK; semua URL cdn.simpleicons.org terverifikasi 200
+
 ## Tersisa (opsional / kapan-kapan)
 - [ ] HTTPS (certbot) + `COOKIE_SECURE=true`, `CORS_ORIGIN` daftar origin di produksi
 - [ ] Deploy nginx per konfigurasi di `plan/MULTI-SITE.md`

@@ -38,11 +38,13 @@ function TimelineList({
   emptyText,
   lang,
   present,
+  bullets = false,
 }: {
   items: TimelineItem[];
   emptyText: string;
   lang: string;
   present: string;
+  bullets?: boolean;
 }) {
   if (items.length === 0) return <p className="text-sm text-muted-foreground">{emptyText}</p>;
   return (
@@ -57,9 +59,23 @@ function TimelineList({
           <p className="text-xs text-muted-foreground">
             {formatPeriod(item.start_date, item.end_date, item.is_current, lang, present)}
           </p>
-          {item.description && (
-            <p className="mt-1 text-sm text-muted-foreground">{item.description}</p>
-          )}
+          {item.description &&
+            (bullets ? (
+              <ul className="mt-2 space-y-1.5">
+                {item.description
+                  .split("\n")
+                  .map((line) => line.replace(/^\|-\s*/, ""))
+                  .filter((line) => line.trim().length > 0)
+                  .map((line, i) => (
+                    <li key={i} className="flex gap-2 text-sm text-muted-foreground">
+                      <span className="mt-2 size-1 shrink-0 rounded-full bg-muted-foreground" />
+                      <span>{line}</span>
+                    </li>
+                  ))}
+              </ul>
+            ) : (
+              <p className="mt-1 text-sm text-muted-foreground">{item.description}</p>
+            ))}
         </li>
       ))}
     </ol>
@@ -74,6 +90,7 @@ function TimelineColumn({
   emptyText,
   lang,
   present,
+  bullets = false,
 }: {
   icon: LucideIcon;
   title: string;
@@ -82,6 +99,7 @@ function TimelineColumn({
   emptyText: string;
   lang: string;
   present: string;
+  bullets?: boolean;
 }) {
   return (
     <section className="space-y-6">
@@ -94,7 +112,7 @@ function TimelineColumn({
           <Skeleton className="h-24 w-full" />
         </div>
       ) : (
-        <TimelineList items={items} emptyText={emptyText} lang={lang} present={present} />
+        <TimelineList items={items} emptyText={emptyText} lang={lang} present={present} bullets={bullets} />
       )}
     </section>
   );
@@ -110,7 +128,7 @@ export function Timeline() {
   const loading = experiences.loading || educations.loading;
 
   return (
-    <div className="grid gap-10 lg:grid-cols-2">
+    <div className="space-y-10">
       <TimelineColumn
         icon={Briefcase}
         title={t("about.experience")}
@@ -127,6 +145,7 @@ export function Timeline() {
         emptyText="—"
         lang={lang}
         present={present}
+        bullets
       />
       <TimelineColumn
         icon={GraduationCap}

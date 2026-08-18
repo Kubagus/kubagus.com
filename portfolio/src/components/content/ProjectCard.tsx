@@ -17,7 +17,12 @@ export function ProjectCard({ project }: ProjectCardProps) {
   const cover = assetUrl(project.cover_image);
 
   return (
-    <Card className="flex h-full flex-col overflow-hidden">
+    <Card className="relative flex h-full flex-col overflow-hidden">
+      <Link
+        to={`/projects/${project.slug}`}
+        className="absolute inset-0 z-10"
+        aria-label={project.title ?? project.slug}
+      />
       {cover ? (
         <Link to={`/projects/${project.slug}`} className="block aspect-video overflow-hidden bg-muted">
           <img
@@ -63,20 +68,20 @@ export function ProjectCard({ project }: ProjectCardProps) {
         )}
       </CardContent>
       <CardFooter className="gap-2">
-        <Button size="sm" variant="outline" asChild>
+        <Button size="sm" variant="outline" asChild className="relative z-20">
           <Link to={`/projects/${project.slug}`}>
             {t("home.viewProject")} <ArrowRight className="ml-1 size-3.5" />
           </Link>
         </Button>
         {project.demo_url && (
-          <Button size="sm" variant="ghost" asChild>
+          <Button size="sm" variant="ghost" asChild className="relative z-20">
             <a href={project.demo_url} target="_blank" rel="noreferrer">
               <ExternalLink className="size-3.5" />
             </a>
           </Button>
         )}
         {project.github_url && (
-          <Button size="sm" variant="ghost" asChild>
+          <Button size="sm" variant="ghost" asChild className="relative z-20">
             <a href={project.github_url} target="_blank" rel="noreferrer" aria-label="GitHub">
               <SocialIcon name="github" className="size-4" />
             </a>
