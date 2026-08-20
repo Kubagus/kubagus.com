@@ -11,13 +11,45 @@ async function parseError(res: Response): Promise<string> {
   }
 }
 
+class ApiError extends Error {
+  status: number;
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.status = status;
+  }
+}
+
 interface RequestOptions {
   method?: string;
   body?: unknown;
   formData?: FormData;
 }
 
-async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+function redirectToLogin() {
+  fetch(`${API_URL}/api/auth/logout`, { method: "POST", credentials: "include" }).catch(() => {});
+  if (!window.location.pathname.startsWith("/admin/login")) {
+    window.location.href = "/admin/login";
+  }
+}
+
+/** Satu proses refresh berjalan untuk semua request yang sedang menunggu. */
+let refreshing: Promise<boolean> | null = null;
+
+function tryRefresh(): Promise<boolean> {
+  refreshing ??= fetch(`${API_URL}/api/auth/refresh`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "X-Site-Key": SITE_KEY },
+  })
+    .then((res) => res.ok)
+    .finally(() => {
+      refreshing = null;
+    });
+  return refreshing;
+}
+
+async function doFetch<T>(path: string, options: RequestOptions): Promise<T> {
   const headers: Record<string, string> = { "X-Site-Key": SITE_KEY };
 
   const isForm = !!options.formData;
@@ -30,18 +62,31 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     body: options.formData ?? (options.body !== undefined ? JSON.stringify(options.body) : undefined),
   });
 
-  if (res.status === 401 && !path.startsWith("/auth/login")) {
-    // Sesi via cookie kedaluwarsa — coba bersihkan cookie lalu redirect.
-    fetch(`${API_URL}/api/auth/logout`, { method: "POST", credentials: "include" }).catch(() => {});
-    if (!window.location.pathname.startsWith("/admin/login")) {
-      window.location.href = "/admin/login";
-    }
-    throw new Error("Sesi berakhir, silakan login kembali.");
-  }
-
-  if (!res.ok) throw new Error(await parseError(res));
+  if (!res.ok) throw new ApiError(res.status, await parseError(res));
   if (res.status === 204) return undefined as T;
   return res.json() as Promise<T>;
+}
+
+async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  try {
+    return await doFetch<T>(path, options);
+  } catch (err) {
+    const isUnauthorized = err instanceof ApiError && err.status === 401 && !path.startsWith("/auth/login");
+    if (!isUnauthorized) throw err;
+
+    // Access token kedaluwarsa — coba refresh sekali, lalu ulangi request.
+    const refreshed = await tryRefresh();
+    if (!refreshed) {
+      redirectToLogin();
+      throw new Error("Sesi berakhir, silakan login kembali.");
+    }
+    try {
+      return await doFetch<T>(path, options);
+    } catch (retryErr) {
+      redirectToLogin();
+      throw new Error("Sesi berakhir, silakan login kembali.");
+    }
+  }
 }
 
 export const adminApi = {

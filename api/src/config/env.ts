@@ -27,10 +27,14 @@ export const env = {
   },
   jwt: {
     secret: process.env.JWT_SECRET ?? 'dev-secret-change-me',
-    expiresIn: process.env.JWT_EXPIRES_IN ?? '7d',
+    expiresIn: process.env.JWT_EXPIRES_IN ?? '1h',
+    refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN ?? '30d',
+    issuer: process.env.JWT_ISSUER ?? 'kubagus-api',
+    audience: process.env.JWT_AUDIENCE ?? 'kubagus-admin',
   },
   cookie: {
     name: process.env.COOKIE_NAME ?? 'kubagus_token',
+    refreshName: process.env.COOKIE_REFRESH_NAME ?? 'kubagus_refresh',
     secure: process.env.COOKIE_SECURE === 'true',
     sameSite: (process.env.COOKIE_SAMESITE ?? 'lax') as 'lax' | 'strict' | 'none',
   },

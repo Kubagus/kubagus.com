@@ -178,6 +178,17 @@
 - [x] Nama polos di admin diberi warna abu adaptif tema (gelap `e5e7eb` / terang `1f2937`)
 - [x] Build OK, lint OK; semua URL cdn.simpleicons.org terverifikasi 200
 
+## Penguatan keamanan auth (Opsi A — JWT + refresh token + revoke)
+- [x] **Migration `006_auth_hardening.sql`**: `admins.token_version` (revoke semua sesi), tabel `admin_refresh_tokens` (hash SHA-256, rotasi, revoke), tabel `login_attempts` (rate limit persisten)
+- [x] **Access token umur pendek**: default `JWT_EXPIRES_IN=1h` (dulu 7d), klaim `iss` + `aud` + `jti` + `v` (token_version), verifikasi ketat HS256+issuer+audience di `middleware/auth.ts`; `requireAuth` kini async — cek `token_version` di DB tiap request (token lama langsung mati saat logout)
+- [x] **Refresh token rotasi**: `POST /api/auth/refresh` — token acak 32-byte, hanya hash-nya di DB (30d); tiap refresh token lama ditandai `revoked` + `replaced_by`, token baru diterbitkan (transaksi); reuse token lama → 401
+- [x] **Logout revoke penuh**: cabut refresh token + naikkan `token_version` → semua access token aktif langsung tidak valid, bukan sekadar hapus cookie
+- [x] **Rate limit login di DB** (`services/loginAttempts.ts`, tabel `login_attempts`): 5× gagal → lock 3 menit, persisten lintas restart server
+- [x] **Admin frontend**: `lib/api.ts` — saat 401, otomatis `POST /auth/refresh` sekali lalu ulangi request (single-flight), gagal → redirect login
+- [x] `env.ts` + `.env.example`: `JWT_EXPIRES_IN/JWT_REFRESH_EXPIRES_IN/JWT_ISSUER/JWT_AUDIENCE/COOKIE_REFRESH_NAME`
+- [x] Teruji end-to-end: login→me→refresh rotasi→reuse lama 401→logout→me 401 + refresh 401; rate limit 1-4× 401, 5-6× 429, email lain bebas; lock bertahan setelah restart server; typecheck API bersih, build admin OK
+- [ ] (Opsional berikutnya) TOTP 2FA via `otplib` + halaman enable di admin
+
 ## Tersisa (opsional / kapan-kapan)
 - [ ] HTTPS (certbot) + `COOKIE_SECURE=true`, `CORS_ORIGIN` daftar origin di produksi
 - [ ] Deploy nginx per konfigurasi di `plan/MULTI-SITE.md`
